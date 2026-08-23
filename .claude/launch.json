@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "waypoint-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "waypoint-app", "run", "dev", "--", "--port", "5180", "--strictPort"],
+      "port": 5180,
+      "autoPort": false
+    }
+  ]
+}
