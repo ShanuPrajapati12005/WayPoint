@@ -12,6 +12,7 @@
    =================================================================== */
 
 import { TRACKS, QUIZ_QUESTIONS } from '../data/tracks';
+import { supabase } from '../lib/supabaseClient';
 
 // ─── Config ───
 const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'; // default → mock
@@ -26,8 +27,16 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // and normalizes errors into a thrown Error the UI can surface.
 async function http(path, { method = 'GET', body } = {}) {
   const headers = { 'Content-Type': 'application/json' };
-  const token =
-    typeof localStorage !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+  
+  let token = null;
+  if (typeof localStorage !== 'undefined') {
+    if (USE_MOCK) {
+      token = localStorage.getItem(TOKEN_KEY);
+    } else {
+      const { data } = await supabase.auth.getSession();
+      token = data.session?.access_token || null;
+    }
+  }
   if (token) headers.Authorization = `Bearer ${token}`;
 
   let res;
@@ -143,5 +152,13 @@ export function clearAuthToken() {
 // whole app stays open so a live demo can never get stuck behind a login wall.
 export const AUTH_ENFORCED = !USE_MOCK;
 export function hasAuthToken() {
-  return typeof localStorage !== 'undefined' && !!localStorage.getItem(TOKEN_KEY);
+  if (typeof localStorage !== 'undefined') {
+    if (USE_MOCK) {
+      return !!localStorage.getItem(TOKEN_KEY);
+    } else {
+      const keys = Object.keys(localStorage);
+      return keys.some(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
+    }
+  }
+  return false;
 }

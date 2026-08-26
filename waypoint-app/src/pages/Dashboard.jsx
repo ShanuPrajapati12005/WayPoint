@@ -254,6 +254,13 @@ function NextActionsCard({ track, suggestedNode, navigate }) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { activeTrackId, tracks, userProfile } = useApp();
+
+  React.useEffect(() => {
+    if (import.meta.env.VITE_USE_MOCK === "false" && userProfile.email && !userProfile.isOnboarded) {
+      navigate("/onboarding");
+    }
+  }, [userProfile.email, userProfile.isOnboarded, navigate]);
+
   const track = tracks[activeTrackId] || Object.values(tracks)[0];
   const [gapView, setGapView] = React.useState("radar");
 

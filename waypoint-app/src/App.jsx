@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, MotionConfig } from 'framer-motion';
-import { AppProvider } from './context/AppContext';
+import { AppProvider, useApp } from './context/AppContext';
 import { AUTH_ENFORCED, hasAuthToken } from './services/api';
 
 // Layout
@@ -31,6 +31,19 @@ const NO_NAV_ROUTES = ['/', '/auth'];
  * in mock/demo mode it's a pass-through so the frontend stays fully walkable.
  */
 function RequireAuth({ children }) {
+  const { authLoading } = useApp();
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+        <div className="flex flex-col items-center gap-3">
+          <div className="size-9 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-sm font-medium text-muted-foreground animate-pulse">Verifying secure session...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!AUTH_ENFORCED || hasAuthToken()) return children;
   return <Navigate to="/auth" replace />;
 }

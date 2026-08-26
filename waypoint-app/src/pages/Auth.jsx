@@ -17,6 +17,7 @@ import {
 import { useApp } from "@/context/AppContext";
 import { api } from "@/services/api";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabaseClient";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -70,6 +71,7 @@ export default function Auth() {
   const [touched, setTouched] = React.useState({});
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [successMessage, setSuccessMessage] = React.useState("");
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const pwValid = password.length >= 6;
@@ -84,16 +86,61 @@ export default function Auth() {
     e.preventDefault();
     setTouched({ name: true, email: true, password: true });
     setError("");
+    setSuccessMessage("");
     if (!formValid) return;
     setLoading(true);
     try {
-      if (isLogin) {
-        await api.login(email, password);
-        navigate("/dashboard");
+      if (import.meta.env.VITE_USE_MOCK !== "false") {
+        if (isLogin) {
+          await api.login(email, password);
+          navigate("/dashboard");
+        } else {
+          await api.signup(email, password);
+          setUserProfile((p) => ({ ...p, name: name.trim(), email }));
+          navigate("/onboarding");
+        }
       } else {
-        await api.signup(email, password);
-        setUserProfile((p) => ({ ...p, name: name.trim(), email }));
-        navigate("/onboarding");
+        if (isLogin) {
+          const { data, error: authError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          if (authError) {
+            if (authError.message.toLowerCase().includes("email not confirmed")) {
+              throw new Error("Please verify your email address before logging in. A verification link was sent during signup.");
+            }
+            throw new Error(authError.message || "Invalid credentials. Please try again.");
+          }
+          if (data.user && !data.session) {
+            throw new Error("Email not confirmed. Please verify your email address first.");
+          }
+          navigate("/dashboard");
+        } else {
+          const { data, error: authError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { name: name.trim() },
+            },
+          });
+          if (authError) {
+            if (authError.message.toLowerCase().includes("already registered") || authError.status === 422) {
+              throw new Error("This email is already registered. Please log in instead.");
+            }
+            throw new Error(authError.message || "Signup failed. Please try again.");
+          }
+          
+          if (data.user && !data.session) {
+            setSuccessMessage("Registration successful! A verification link has been sent to your email. Please verify your account before logging in.");
+            setName("");
+            setEmail("");
+            setPassword("");
+            setTouched({});
+          } else {
+            setUserProfile((p) => ({ ...p, name: name.trim(), email }));
+            navigate("/onboarding");
+          }
+        }
       }
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
@@ -105,7 +152,30 @@ export default function Auth() {
   const toggleMode = () => {
     setIsLogin((v) => !v);
     setError("");
+    setSuccessMessage("");
     setTouched({});
+  };
+
+  const handleGoogleLogin = async () => {
+    setError("");
+    setSuccessMessage("");
+    setLoading(true);
+    try {
+      if (import.meta.env.VITE_USE_MOCK !== "false") {
+        navigate(isLogin ? "/dashboard" : "/onboarding");
+      } else {
+        const { error: authError } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`,
+          },
+        });
+        if (authError) throw new Error(authError.message || "Google login failed.");
+      }
+    } catch (err) {
+      setError(err.message || "Something went wrong during Google sign in.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -265,6 +335,12 @@ export default function Auth() {
               </p>
             )}
 
+            {successMessage && (
+              <p className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                {successMessage}
+              </p>
+            )}
+
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
               {loading && <Loader2 className="size-4 animate-spin" />}
               {isLogin ? "Log in" : "Create account"}
@@ -281,7 +357,8 @@ export default function Auth() {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => navigate(isLogin ? "/dashboard" : "/onboarding")}
+            onClick={handleGoogleLogin}
+            disabled={loading}
           >
             <GoogleIcon className="size-4" />
             Continue with Google

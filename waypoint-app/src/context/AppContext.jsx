@@ -15,6 +15,7 @@ import React, {
 import { toast as sonnerToast } from 'sonner';
 import { api, clearAuthToken } from '../services/api';
 import { FEEDBACK_MESSAGES } from '../data/tracks';
+import { supabase } from '../lib/supabaseClient';
 
 const AppContext = createContext(null);
 
@@ -96,6 +97,62 @@ export function AppProvider({ children }) {
     isOnboarded: false,
   });
 
+  const [authLoading, setAuthLoading] = useState(import.meta.env.VITE_USE_MOCK === 'false');
+
+  // ─── Supabase Session Sync ───
+  useEffect(() => {
+    if (import.meta.env.VITE_USE_MOCK === 'false') {
+      // 1. Sync on mount
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          const user = session.user;
+          setUserProfile((p) => ({
+            ...p,
+            id: user.id,
+            email: user.email || '',
+            name: user.user_metadata?.name || user.email?.split('@')[0] || 'Learner',
+            isOnboarded: user.user_metadata?.isOnboarded ?? p.isOnboarded,
+          }));
+        }
+        setAuthLoading(false);
+      }).catch(() => {
+        setAuthLoading(false);
+      });
+
+      // 2. Listen for auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+          const user = session.user;
+          setUserProfile((p) => ({
+            ...p,
+            id: user.id,
+            email: user.email || '',
+            name: user.user_metadata?.name || user.email?.split('@')[0] || 'Learner',
+            isOnboarded: user.user_metadata?.isOnboarded ?? p.isOnboarded,
+          }));
+        } else {
+          // Reset profile on logout
+          setUserProfile({
+            id: '',
+            name: '',
+            email: '',
+            targetRole: '',
+            skillLevel: 'beginner',
+            weeklyTimeHours: 6,
+            learningStyle: '',
+            pastExperience: '',
+            isOnboarded: false,
+          });
+        }
+        setAuthLoading(false);
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, []);
+
   // ─── Sidebar State ───
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
@@ -139,6 +196,14 @@ export function AppProvider({ children }) {
   // device preference, so it deliberately survives a logout.
   const logout = useCallback(() => {
     clearAuthToken(); // real-mode: drop the stored bearer token (no-op in mock)
+    
+    // Clear Supabase session on logout
+    if (import.meta.env.VITE_USE_MOCK === 'false') {
+      supabase.auth.signOut().catch((err) => {
+        console.error('Error signing out of Supabase:', err);
+      });
+    }
+
     setSidebarOpen(false);
     setSelectedNodeId(null);
     setCommandOpen(false);
@@ -187,6 +252,7 @@ export function AppProvider({ children }) {
     userProfile,
     setUserProfile,
     logout,
+    authLoading,
 
     // Sidebar
     sidebarOpen,
