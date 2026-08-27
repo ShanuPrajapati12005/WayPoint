@@ -1,0 +1,202 @@
+[
+  {
+    "q": "Your dataset contains NaN values in several numeric columns. Which preprocessing step is most appropriate before training a linear regression model?",
+    "options": [
+      "Drop all rows with NaNs",
+      "Impute missing values with column mean",
+      "Replace NaNs with zero",
+      "Use a model that natively handles missing values"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "A binary classifier shows 99% accuracy but very low recall on the minority class. Which metric should you prioritize to improve model usefulness?",
+    "options": [
+      "Precision",
+      "Recall",
+      "F1-score",
+      "ROC AUC"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "You have an imbalanced classification problem and want the model to account for class imbalance automatically. Which scikit\u2011learn parameter is the correct choice?",
+    "options": [
+      "class_weight='balanced' in LogisticRegression",
+      "sample_weight argument in fit()",
+      "Apply SMOTE before training",
+      "Use GridSearchCV to tune class weights"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "After training a scikit\u2011learn pipeline, you need to save it for later inference. Which tool is the most reliable for this task?",
+    "options": [
+      "joblib.dump",
+      "pickle.dump",
+      "json.dump",
+      "csv.writer"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "During training, the training loss keeps decreasing while validation loss stays flat. What is the most likely explanation?",
+    "options": [
+      "Underfitting",
+      "Overfitting",
+      "Data leakage",
+      "Learning rate too high"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "You need to speed up k\u2011Nearest Neighbors predictions on a large dataset. Which technique will give the biggest improvement?",
+    "options": [
+      "Reduce k",
+      "Use KD-tree",
+      "Increase dimensions",
+      "One\u2011hot encode features"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "You randomly shuffled a time\u2011series dataset before splitting into train and test, obtaining high test scores that drop in production. What mistake caused this?",
+    "options": [
+      "Data leakage due to random shuffling of time series",
+      "Not scaling features",
+      "Using wrong loss function",
+      "Missing timestamps in features"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Training a neural network with Adam (lr=0.001) plateaus after 30 epochs. Which adjustment is most likely to break the plateau?",
+    "options": [
+      "Increase batch size",
+      "Reduce learning rate",
+      "Add more layers",
+      "Switch to SGD with momentum"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "A high\u2011cardinality categorical feature must be encoded for XGBoost. Which encoding method is most appropriate?",
+    "options": [
+      "One\u2011hot encoding",
+      "Label encoding",
+      "Target encoding",
+      "Binary encoding"
+    ],
+    "correct": 1
+  },
+  {
+    "q": "You attempt to use StratifiedKFold for a regression problem. What problem does this cause?",
+    "options": [
+      "Stratification improves regression",
+      "StratifiedKFold balances folds",
+      "Leads to data leakage",
+      "Cannot use stratified folds for regression"
+    ],
+    "correct": 3
+  },
+  {
+    "q": "During RNN training you encounter gradient exploding. Which technique directly addresses this issue?",
+    "options": [
+      "Gradient clipping",
+      "Weight decay",
+      "Dropout",
+      "Batch normalization"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Your model outputs poorly calibrated probabilities. Which post\u2011processing method can correct this?",
+    "options": [
+      "Platt scaling",
+      "Label smoothing",
+      "Early stopping",
+      "Bagging"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Before applying PCA and then training an SVM, which preprocessing step is essential?",
+    "options": [
+      "Standardize (zero mean, unit variance)",
+      "Min\u2011max scaling",
+      "Impute missing values",
+      "One\u2011hot encode categorical"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "When tuning a pipeline containing PCA and RandomForest with GridSearchCV, the best PCA parameters change as RandomForest depth changes. Why?",
+    "options": [
+      "Interaction between pipeline steps",
+      "Random seed variance",
+      "Overfitting of PCA",
+      "Order of steps in pipeline"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "After adding random rotation augmentation to a CNN trained on limited data, validation loss rises sharply. What is the most likely cause?",
+    "options": [
+      "Augmentation is too aggressive causing label mismatch",
+      "Learning rate too high",
+      "Batch\u2011norm mis\u2011configuration",
+      "Optimizer not converging"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "A custom loss that mixes BCE and focal loss returns NaN after a few epochs. What is the most probable cause?",
+    "options": [
+      "log(0) from BCE causing NaN",
+      "Overflow in focal term",
+      "Gradient explosion",
+      "Missing gradient in custom loss"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "LightGBM treats a categorical feature as ordinal, hurting performance. How can you fix this?",
+    "options": [
+      "Set categorical_feature columns to string dtype",
+      "One\u2011hot encode categories",
+      "Increase max_bin parameter",
+      "Disable monotone constraints"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "TensorFlow Serving shows latency spikes for batch size 1. Which optimization is most likely to reduce these spikes?",
+    "options": [
+      "Enable XLA compilation",
+      "Increase batch size",
+      "Deploy on GPU",
+      "Quantize the model"
+    ],
+    "correct": 0
+  },
+  {
+    "q": "Binary relevance with LogisticRegression on a 100\u2011label problem is too slow. Which change can speed up training with minimal impact?",
+    "options": [
+      "Use dimensionality reduction on label space",
+      "Switch to linear SVM",
+      "Use SGDClassifier",
+      "Limit max_iter"
+    ],
+    "correct": 2
+  },
+  {
+    "q": "A model achieves 100% training accuracy but only 10% test accuracy. Which specific check would confirm data leakage?",
+    "options": [
+      "Verify that test set contains rows from training set",
+      "Ensure no target column is used as feature",
+      "Check random seed reproducibility",
+      "Examine feature scaling consistency"
+    ],
+    "correct": 0
+  }
+]

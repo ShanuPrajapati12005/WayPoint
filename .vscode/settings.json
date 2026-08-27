@@ -1,0 +1,7 @@
+{
+  "python.defaultInterpreterPath": "e:\\HCLTECH Hackathon\\WayPoint_Rudra\\WayPoint\\backend\\.venv\\Scripts\\python.exe",
+  "python.pythonPath": "e:\\HCLTECH Hackathon\\WayPoint_Rudra\\WayPoint\\backend\\.venv\\Scripts\\python.exe",
+  "python.analysis.extraPaths": [
+    "e:\\HCLTECH Hackathon\\WayPoint_Rudra\\WayPoint\\backend"
+  ]
+}
