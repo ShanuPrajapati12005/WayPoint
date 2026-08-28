@@ -6,10 +6,25 @@ from services.groq_service import generate_quiz_questions
 
 
 def get_or_generate_quiz(role_id: str, skill_level: str, quiz_type: str, db: Session) -> list:
-    """Always generate fresh quiz questions with Groq to ensure randomness.
+    """Get seeded quiz questions from the database if they exist (for initial quizzes).
+    If none exist or it is a final quiz, generate fresh quiz questions with Groq.
     Returns list of {q, options} WITHOUT correct answer (security)."""
 
-    # Delete existing cached questions for this role to allow fresh grading
+    if quiz_type == "initial":
+        # Check if we have questions in the database
+        existing_questions = (
+            db.query(QuizQuestion)
+            .filter(QuizQuestion.role_id == role_id)
+            .order_by(QuizQuestion.order_index)
+            .all()
+        )
+
+        if existing_questions:
+            print(f"[QUIZ] Serving {len(existing_questions)} seeded questions from DB for: {role_id}")
+            # Return without correct answer
+            return [{"q": q.q, "options": q.options} for q in existing_questions]
+
+    # Clean existing cached questions for this role to allow fresh grading
     db.query(QuizQuestion).filter(QuizQuestion.role_id == role_id).delete()
     db.commit()
 

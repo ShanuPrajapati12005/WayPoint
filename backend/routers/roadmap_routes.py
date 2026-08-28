@@ -1,11 +1,14 @@
 """WayPoint — Roadmap Routes (list, generate, update node status)"""
 
+# pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, Path
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel
 from typing import Optional
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Roadmap, User, ProgressEvent, QuizAttempt
+from models import Roadmap, User, ProgressEvent, QuizAttempt, RoadmapNode, Skill
 from auth import get_current_user_id
 from services.groq_service import generate_roadmap, ROLE_LABELS, chat_with_node, adapt_roadmap
 
@@ -107,7 +110,7 @@ def generate_roadmap_endpoint(
     # Generate with Groq
     track = generate_roadmap(role_id, user_profile=profile, quiz_score=quiz_score)
 
-    # Save to DB
+    # Save to DB (Denormalized)
     roadmap = Roadmap(
         user_id=user_id,
         role_id=role_id,
@@ -120,6 +123,51 @@ def generate_roadmap_endpoint(
     db.add(roadmap)
     db.commit()
     db.refresh(roadmap)
+
+    # Save to Normalized Tables (Idempotent: clean existing nodes/skills for this roadmap)
+    try:
+        db.query(RoadmapNode).filter(RoadmapNode.roadmap_id == roadmap.id).delete()
+        db.query(Skill).filter(Skill.roadmap_id == roadmap.id).delete()
+
+        # Insert roadmap nodes
+        NODE_ORDER = ["f1", "f2", "f3", "d1", "d2", "m1", "m2", "m3"]
+        node_map = track.get("nodeMap", {})
+        reasoning_map = track.get("reasoning", {})
+        for idx, node_key in enumerate(NODE_ORDER):
+            if node_key in node_map:
+                node_data = node_map[node_key]
+                reason_data = reasoning_map.get(node_key, {})
+                
+                db_node = RoadmapNode(
+                    roadmap_id=roadmap.id,
+                    node_key=node_key,
+                    title=node_data.get("title", ""),
+                    status=node_data.get("status", "not_started"),
+                    match=node_data.get("match", 100),
+                    duration=node_data.get("duration", ""),
+                    stage=node_data.get("stage", "learn"),
+                    order_index=idx,
+                    reason=reason_data.get("reason", ""),
+                    prereq=reason_data.get("prereq", ""),
+                    time_fit=reason_data.get("time", "")
+                )
+                db.add(db_node)
+
+        # Insert skills
+        skill_list = track.get("skillData", [])
+        for s in skill_list:
+            db_skill = Skill(
+                roadmap_id=roadmap.id,
+                skill=s.get("skill", ""),
+                current=s.get("current", 0),
+                target=s.get("target", 10)
+            )
+            db.add(db_skill)
+
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[ROADMAP] Failed to save normalized roadmap nodes/skills: {e}")
 
     return {"success": True, "roadmap": track}
 
@@ -152,6 +200,14 @@ def update_node_status(
         node_map[node_id] = {**node_map[node_id], "status": req.status}
         roadmap.node_map = node_map
 
+        # Update normalized RoadmapNode
+        try:
+            db_node = db.query(RoadmapNode).filter(RoadmapNode.roadmap_id == roadmap.id, RoadmapNode.node_key == node_id).first()
+            if db_node:
+                db_node.status = req.status
+        except Exception as e:
+            print(f"[ROADMAP] Failed to update normalized node status: {e}")
+
         # If transitioning to completed, simulate skill progress
         if req.status == "completed" and old_status != "completed":
             import copy
@@ -177,6 +233,7 @@ def update_node_status(
             roadmap.skill_data = new_skill_data
             
             # Import flag_modified locally and apply it to be safe
+            # pyrefly: ignore [missing-import]
             from sqlalchemy.orm.attributes import flag_modified
             flag_modified(roadmap, "skill_data")
 
@@ -186,8 +243,19 @@ def update_node_status(
             roadmap.status = "completed"
 
         # Flag node_map as modified so SQLAlchemy saves the JSON update
+        # pyrefly: ignore [missing-import]
         from sqlalchemy.orm.attributes import flag_modified
         flag_modified(roadmap, "node_map")
+
+        # Sync normalized Skill progress
+        try:
+            for skill in (roadmap.skill_data or []):
+                db_skill = db.query(Skill).filter(Skill.roadmap_id == roadmap.id, Skill.skill == skill.get("skill")).first()
+                if db_skill:
+                    db_skill.current = skill.get("current", 0)
+                    db_skill.target = skill.get("target", 10)
+        except Exception as e:
+            print(f"[ROADMAP] Failed to sync normalized skills: {e}")
 
         db.commit()
 
@@ -278,11 +346,32 @@ def adapt_roadmap_endpoint(
     roadmap.skill_data = adapted_track.get("skillData", roadmap.skill_data)
     roadmap.reasoning = adapted_track.get("reasoning", roadmap.reasoning)
     
+    # pyrefly: ignore [missing-import]
     from sqlalchemy.orm.attributes import flag_modified
     flag_modified(roadmap, "node_map")
     flag_modified(roadmap, "skill_data")
     flag_modified(roadmap, "reasoning")
     
+    # Update normalized nodes & skills on adaptation
+    try:
+        # Update nodes
+        node_map = roadmap.node_map or {}
+        for node_key, node_data in node_map.items():
+            db_node = db.query(RoadmapNode).filter(RoadmapNode.roadmap_id == roadmap.id, RoadmapNode.node_key == node_key).first()
+            if db_node:
+                db_node.title = node_data.get("title", db_node.title)
+                db_node.status = node_data.get("status", db_node.status)
+                db_node.duration = node_data.get("duration", db_node.duration)
+        
+        # Update skills
+        for skill in (roadmap.skill_data or []):
+            db_skill = db.query(Skill).filter(Skill.roadmap_id == roadmap.id, Skill.skill == skill.get("skill")).first()
+            if db_skill:
+                db_skill.current = skill.get("current", db_skill.current)
+                db_skill.target = skill.get("target", db_skill.target)
+    except Exception as e:
+        print(f"[ROADMAP] Failed to sync normalized values on adaptation: {e}")
+
     db.commit()
 
     # Return a fully validated, complete track dictionary

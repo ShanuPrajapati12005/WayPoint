@@ -81,3 +81,44 @@ class ProgressEvent(Base):
     node_key = Column(String, nullable=False)
     new_status = Column(String, nullable=False)
     created_at = Column(DateTime, default=utcnow)
+
+
+class RoadmapNode(Base):
+    __tablename__ = "roadmap_nodes"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    roadmap_id = Column(String, nullable=False, index=True)
+    node_key = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    status = Column(String, default="not_started")
+    match = Column(Integer)
+    duration = Column(String)
+    stage = Column(String)
+    order_index = Column(Integer, nullable=False)
+    reason = Column(Text, nullable=True)
+    prereq = Column(Text, nullable=True)
+    time_fit = Column(Text, nullable=True)
+
+
+class Skill(Base):
+    __tablename__ = "skills"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    roadmap_id = Column(String, nullable=False, index=True)
+    skill = Column(String, nullable=False)
+    current = Column(Integer, default=0)
+    target = Column(Integer, default=0)
+
+
+class Evidence(Base):
+    __tablename__ = "evidence"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    user_id = Column(String, nullable=False, index=True)
+    roadmap_id = Column(String, nullable=False, index=True)
+    node_key = Column(String, nullable=True)
+    type = Column(String, nullable=True)
+    title = Column(String, nullable=True)
+    url = Column(String, nullable=True)
+    verified = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=utcnow)
