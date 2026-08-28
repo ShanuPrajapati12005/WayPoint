@@ -23,6 +23,7 @@ import SkillCheck from './pages/SkillCheck';
 import PathSelect from './pages/PathSelect';
 import Roadmap from './pages/Roadmap';
 import Dashboard from './pages/Dashboard';
+import MyProfile from './pages/MyProfile';
 import AddSkill from './pages/AddSkill';
 import FinalAssessment from './pages/FinalAssessment';
 
@@ -56,6 +57,7 @@ function AppContent() {
             <Route path="/path-select" element={<RequireAuth><PathSelect /></RequireAuth>} />
             <Route path="/roadmap" element={<RequireAuth><Roadmap /></RequireAuth>} />
             <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+            <Route path="/profile" element={<RequireAuth><MyProfile /></RequireAuth>} />
             <Route path="/add-skill" element={<RequireAuth><AddSkill /></RequireAuth>} />
             <Route path="/final-assessment" element={<RequireAuth><FinalAssessment /></RequireAuth>} />
           </Routes>
