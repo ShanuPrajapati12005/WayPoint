@@ -92,51 +92,7 @@ function MilestoneTimeline({ track }) {
   );
 }
 
-function InsightsCard() {
-  const [idx, setIdx] = React.useState(0);
-  const insight = INSIGHTS[idx];
-  const prev = () => setIdx((i) => (i - 1 + INSIGHTS.length) % INSIGHTS.length);
-  const next = () => setIdx((i) => (i + 1) % INSIGHTS.length);
-  return (
-    <Card className="border-primary/25 bg-gradient-to-br from-primary/[0.06] to-card p-4">
-      <div className="mb-2.5 flex items-center justify-between">
-        <span className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-primary">
-          <Sparkles className="size-3.5" /> AI insight
-        </span>
-        <div className="flex items-center gap-2.5">
-          <div className="flex gap-1">
-            {INSIGHTS.map((_, i) => (
-              <span key={i} className={"size-1.5 rounded-full " + (i === idx ? "bg-primary" : "bg-border")} />
-            ))}
-          </div>
-          <div className="flex text-muted-foreground">
-            <button onClick={prev} aria-label="Previous insight" className="transition-colors hover:text-foreground">
-              <ChevronLeft className="size-4" />
-            </button>
-            <button onClick={next} aria-label="Next insight" className="transition-colors hover:text-foreground">
-              <ChevronRight className="size-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={idx}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          className="flex items-start gap-2.5"
-        >
-          <span className="text-xl leading-none">{insight.icon}</span>
-          <p className="text-sm leading-relaxed text-foreground">{insight.text}</p>
-        </motion.div>
-      </AnimatePresence>
-      <button className="mt-3 w-full rounded-full border border-primary/30 bg-primary/5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10">
-        {insight.action}
-      </button>
-    </Card>
-  );
-}
+
 
 /** Alternate skill-gap view — horizontal bars sorted largest-gap-first,
     with a marker at each target (toggle counterpart to the radar). */
@@ -254,78 +210,6 @@ function NextActionsCard({ track, suggestedNode, navigate }) {
           );
         })}
       </div>
-    </Card>
-  );
-}
-
-/** Learner Profile card — shows the rich profile from onboarding chat on the dashboard. */
-function LearnerProfileCard({ userProfile }) {
-  const dc = userProfile.detailedContext || {};
-  const hasProfile = userProfile.pastExperience || userProfile.careerGoals || dc.education;
-
-  if (!hasProfile) return null;
-
-  const profileItems = [
-    { icon: GraduationCap, label: "Education", value: dc.education, tone: "text-primary" },
-    { icon: Briefcase, label: "Experience", value: userProfile.pastExperience, tone: "text-blue-500" },
-    { icon: Target, label: "Career Goal", value: userProfile.careerGoals, tone: "text-violet-500" },
-    { icon: Star, label: "Strengths", value: dc.strengths, tone: "text-amber-500" },
-    { icon: AlertTriangle, label: "Areas to Improve", value: dc.weaknesses, tone: "text-orange-500" },
-    { icon: Building2, label: "Dream Company", value: dc.dreamCompany, tone: "text-emerald-500" },
-    { icon: Heart, label: "Motivation", value: dc.motivation, tone: "text-rose-500" },
-  ].filter((item) => item.value && item.value !== "Not specified" && item.value !== "Failed to extract");
-
-  if (profileItems.length === 0) return null;
-
-  return (
-    <Card className="border-primary/20 bg-gradient-to-br from-primary/[0.04] to-card">
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-primary/12 text-primary">
-            <User className="size-4" />
-          </span>
-          <CardTitle className="text-base">Learner Profile</CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3 pt-0">
-        {profileItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <div key={item.label} className="flex items-start gap-2.5">
-              <span className={cn("mt-0.5 shrink-0", item.tone)}>
-                <Icon className="size-3.5" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  {item.label}
-                </p>
-                <p className="text-sm leading-snug text-foreground">{item.value}</p>
-              </div>
-            </div>
-          );
-        })}
-        {userProfile.learningStyle && (
-          <div className="mt-2 flex items-center gap-2">
-            <Badge variant="outline" className="text-xs capitalize">
-              📚 {userProfile.learningStyle?.replace("-", " ")}
-            </Badge>
-            {userProfile.weeklyTimeHours && (
-              <Badge variant="outline" className="text-xs">
-                ⏰ {userProfile.weeklyTimeHours} hrs/week
-              </Badge>
-            )}
-          </div>
-        )}
-        {dc.preferredLanguages && dc.preferredLanguages.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {dc.preferredLanguages.map((lang) => (
-              <Badge key={lang} variant="secondary" className="text-[11px]">
-                {lang}
-              </Badge>
-            ))}
-          </div>
-        )}
-      </CardContent>
     </Card>
   );
 }
@@ -471,8 +355,6 @@ export default function Dashboard() {
         </Card>
 
         <div className="flex flex-col gap-5">
-          <LearnerProfileCard userProfile={userProfile} />
-          <InsightsCard />
           <NextActionsCard track={track} suggestedNode={suggestedNode} navigate={navigate} />
         </div>
       </div>
