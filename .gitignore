@@ -1,0 +1,31 @@
+# Environments
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+env_secrets_for_team.txt
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.db
+*.sqlite3
+waypoint.db
+waypoint_backup.db
+scratch/
+
+# Node
+node_modules/
+dist/
+build/
+.npm/
+
+# OS
+.DS_Store
+Thumbs.db

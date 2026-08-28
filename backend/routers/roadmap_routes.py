@@ -7,9 +7,9 @@ from pydantic import BaseModel
 from typing import Optional
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
-from database import get_db
-from models import Roadmap, User, ProgressEvent, QuizAttempt, RoadmapNode, Skill
-from auth import get_current_user_id
+from db.database import get_db
+from db.models import Roadmap, User, ProgressEvent, QuizAttempt, RoadmapNode, Skill
+from core.auth import get_current_user_id
 from services.groq_service import generate_roadmap, ROLE_LABELS, chat_with_node, adapt_roadmap
 
 router = APIRouter(tags=["roadmap"])

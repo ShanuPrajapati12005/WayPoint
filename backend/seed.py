@@ -4,8 +4,8 @@ import os
 # Add parent directory to path so we can import from database and models
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from database import SessionLocal, engine
-from models import QuizQuestion
+from db.database import SessionLocal, engine
+from db.models import QuizQuestion
 
 SEEDS = [
     {

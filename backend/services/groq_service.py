@@ -13,7 +13,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from typing import Dict, List, Literal
 from groq import Groq
-from config import GROQ_API_KEY, GROQ_MODEL
+from core.config import GROQ_API_KEY, GROQ_MODEL
 
 # ─── Groq Client ───
 client = Groq(api_key=GROQ_API_KEY, timeout=30.0)

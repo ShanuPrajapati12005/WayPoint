@@ -191,7 +191,7 @@ export default function Auth() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="space-y-2 overflow-hidden"
+                  className="space-y-2 overflow-hidden px-1 pb-1 -mx-1"
                 >
                   <Label htmlFor="name">Full name</Label>
                   <Input

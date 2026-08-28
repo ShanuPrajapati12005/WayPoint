@@ -1,7 +1,7 @@
 """WayPoint — Quiz Service (generation + grading + caching)"""
 
 from sqlalchemy.orm import Session
-from models import QuizQuestion, QuizAttempt, Roadmap
+from db.models import QuizQuestion, QuizAttempt, Roadmap
 from services.groq_service import generate_quiz_questions
 
 

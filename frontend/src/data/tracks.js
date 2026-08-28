@@ -198,30 +198,8 @@ export const TRACKS = {
 };
 
 // ─── QUIZ QUESTIONS BANK ───
-export const QUIZ_QUESTIONS = {
-  ml: [
-    { q: 'You need to merge two SQL tables and keep unmatched rows from both sides. Which join do you reach for?', options: ['INNER JOIN', 'LEFT JOIN', 'FULL OUTER JOIN', 'Not sure'], correct: 2 },
-    { q: 'Which metric best describes how spread out a dataset is, not just its center?', options: ['Mean', 'Median', 'Standard deviation', 'Mode'], correct: 2 },
-    { q: 'In Pandas, which method removes duplicate rows from a DataFrame?', options: ['dropna()', 'drop_duplicates()', 'unique()', 'Not sure'], correct: 1 },
-    { q: 'What does overfitting mean in a machine learning model?', options: ['Model is too simple', 'Model memorizes training data', 'Model has high bias', 'Not sure'], correct: 1 },
-    { q: 'Which library is most commonly used for data visualization in Python?', options: ['NumPy', 'Matplotlib', 'Flask', 'Django'], correct: 1 },
-  ],
-  java: [
-    { q: 'What is the correct way to declare an ArrayList of Strings in Java?', options: ['ArrayList<String> list = new ArrayList<>();', 'String[] list = new ArrayList();', 'List list = new String[];', 'Not sure'], correct: 0 },
-    { q: 'Which keyword is used to inherit a class in Java?', options: ['implements', 'extends', 'inherits', 'super'], correct: 1 },
-    { q: 'What does the "final" keyword do when applied to a variable?', options: ['Makes it static', 'Makes it immutable', 'Makes it private', 'Not sure'], correct: 1 },
-  ],
-  mern: [
-    { q: 'What does the "useEffect" hook do in React?', options: ['Manages state', 'Handles side effects', 'Creates components', 'Renders JSX'], correct: 1 },
-    { q: 'Which HTTP method is typically used to update an existing resource?', options: ['GET', 'POST', 'PUT', 'DELETE'], correct: 2 },
-    { q: 'In MongoDB, what is a "document"?', options: ['A PDF file', 'A JSON-like data record', 'A database table', 'A query'], correct: 1 },
-  ],
-  devops: [
-    { q: 'Which command lists all running Docker containers?', options: ['docker ps', 'docker list', 'docker containers', 'docker run'], correct: 0 },
-    { q: 'What does CI/CD stand for?', options: ['Code Integration/Code Deployment', 'Continuous Integration/Continuous Delivery', 'Container Integration/Container Delivery', 'Not sure'], correct: 1 },
-    { q: 'Which file defines a Docker image?', options: ['docker-compose.yml', 'Dockerfile', 'package.json', '.dockerignore'], correct: 1 },
-  ],
-};
+// Questions are now dynamically fetched from the backend (Supabase `quiz_questions` table)
+export const QUIZ_QUESTIONS = {};
 
 // ─── AI INSIGHTS ───
 export const INSIGHTS = [

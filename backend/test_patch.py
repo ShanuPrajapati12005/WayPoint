@@ -3,9 +3,9 @@ import os
 sys.path.insert(0, os.getcwd())
 from fastapi.testclient import TestClient
 from main import app
-from database import get_db, SessionLocal
-from models import User
-from auth import get_current_user_id
+from db.database import get_db, SessionLocal
+from db.models import User
+from core.auth import get_current_user_id
 
 db = SessionLocal()
 user = db.query(User).filter(User.email == 'admin@nexora.com').first()

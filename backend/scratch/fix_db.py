@@ -4,8 +4,8 @@ import os
 # Add backend directory to path so we can import from it
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from database import SessionLocal
-from models import Roadmap
+from db.database import SessionLocal
+from db.models import Roadmap
 
 def fix_roadmaps():
     db = SessionLocal()

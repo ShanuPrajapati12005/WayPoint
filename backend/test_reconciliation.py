@@ -9,8 +9,8 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(__file__))
 
-from models import Base, User, Roadmap, QuizAttempt, ProgressEvent, Evidence
-from auth import get_current_user_id
+from db.models import Base, User, Roadmap, QuizAttempt, ProgressEvent, Evidence
+from core.auth import get_current_user_id
 
 class TestAuthenticationReconciliation(unittest.TestCase):
     def setUp(self):

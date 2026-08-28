@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from typing import List
 from sqlalchemy.orm import Session
-from database import get_db
-from auth import get_current_user_id
+from db.database import get_db
+from core.auth import get_current_user_id
 from services.quiz_service import get_or_generate_quiz, grade_quiz
 
 router = APIRouter(prefix="/api/assessment", tags=["assessment"])

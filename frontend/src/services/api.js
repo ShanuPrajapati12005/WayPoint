@@ -58,189 +58,6 @@ async function http(path, { method = 'GET', body } = {}) {
   return data;
 }
 
-// ─── Mock implementation ───
-const mock = {
-  login: async (email, password) => {
-    await delay(1000);
-    if (password.length < 6) throw new Error('Invalid credentials');
-    return { success: true, user: { id: 'user-001', email } };
-  },
-  signup: async (email, password) => {
-    await delay(1000);
-    return { success: true, user: { id: 'user-002', email } };
-  },
-  submitOnboarding: async (profileData) => {
-    await delay(1200);
-    return { success: true, profile: { ...profileData, id: 'user-001', isOnboarded: true } };
-  },
-  onboardingChat: async (messages, roleId) => {
-    await delay(1000);
-    // Mock conversational flow — simulate 5 exchanges before "done"
-    const userMsgCount = messages.filter((m) => m.role === 'user').length;
-    const mockReplies = [
-      'Hey there! 🚀 So tell me, what are you currently doing — college, job, or self-learning?',
-      'Nice! Have you built any projects before? Any language or tool — big or small, everything counts!',
-      'Awesome! What\'s your dream job? Startup, big tech, freelance — where do you see yourself?',
-      'Solid goal! 💪 Tell me one strength that helps you in tech, and one thing you find challenging.',
-      'Got it! How many hours per week can you dedicate to learning? Be honest — we\'ll build a realistic plan.',
-    ];
-    if (userMsgCount >= 5) {
-      return {
-        success: true,
-        done: true,
-        profile: {
-          skillLevel: 'beginner',
-          learningStyle: 'mixed',
-          weeklyTimeHours: 6,
-          pastExperience: 'Basic Python knowledge, small scripts',
-          careerGoals: 'Become a Machine Learning Engineer at a top tech company',
-          detailedContext: {
-            education: 'B.Tech CS student',
-            strengths: 'Problem solving, Python basics',
-            weaknesses: 'Math and statistics',
-            projectsDone: 'Small Python scripts, one web project',
-            preferredLanguages: ['Python', 'JavaScript'],
-            dreamCompany: 'Google',
-            motivation: 'Build AI products that help people',
-          },
-        },
-      };
-    }
-    const reply = mockReplies[userMsgCount] || mockReplies[0];
-    return { success: true, done: false, message: reply };
-  },
-  getQuiz: async (roleId, skillLevel = 'beginner', quizType = 'initial') => {
-    await delay(600);
-    let questions = QUIZ_QUESTIONS[roleId] || [];
-    if (quizType === 'final') {
-        questions = [...questions, ...questions]; // mock 20 questions for final by duplicating
-    }
-    return { success: true, questions };
-  },
-  submitQuiz: async (roleId, answers, quizType = 'initial') => {
-    await delay(1500);
-    let questions = QUIZ_QUESTIONS[roleId] || [];
-    if (quizType === 'final') {
-        questions = [...questions, ...questions];
-    }
-    
-    const results = questions.map((q, i) => {
-      const userAnswer = answers[i] !== undefined ? answers[i] : -1;
-      const isCorrect = userAnswer === q.correct;
-      return {
-        q: q.q,
-        options: q.options,
-        user_answer: userAnswer,
-        correct_answer: q.correct,
-        is_correct: isCorrect
-      };
-    });
-
-    const correctCount = results.filter(r => r.is_correct).length;
-    const totalCount = questions.length;
-    const score = Math.round((correctCount / totalCount) * 100);
-
-    if (quizType === 'final') {
-      const stored = localStorage.getItem('waypoint-mock-tracks');
-      const data = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(TRACKS));
-      if (data[roleId]) {
-        data[roleId].skillData = data[roleId].skillData.map(skill => ({
-          ...skill,
-          current: Math.max(0, Math.floor((skill.target || 100) * (score / 100.0)))
-        }));
-        localStorage.setItem('waypoint-mock-tracks', JSON.stringify(data));
-      }
-    }
-
-    return {
-      success: true,
-      readiness_score: score,
-      correct_count: correctCount,
-      total_count: totalCount,
-      results
-    };
-  },
-  getRoadmaps: async () => {
-    await delay(800);
-    const stored = localStorage.getItem('waypoint-mock-tracks');
-    const data = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(TRACKS));
-    if (!stored) localStorage.setItem('waypoint-mock-tracks', JSON.stringify(data));
-    return { success: true, data };
-  },
-  generateRoadmap: async (roleId) => {
-    await delay(2000);
-    const stored = localStorage.getItem('waypoint-mock-tracks');
-    const data = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(TRACKS));
-    if (!data[roleId]) {
-      data[roleId] = TRACKS[roleId];
-      localStorage.setItem('waypoint-mock-tracks', JSON.stringify(data));
-    }
-    return { success: true, roadmap: data[roleId] };
-  },
-  updateNodeStatus: async (trackId, nodeId, status) => {
-    await delay(400);
-    const stored = localStorage.getItem('waypoint-mock-tracks');
-    const data = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(TRACKS));
-    if (data[trackId] && data[trackId].nodeMap[nodeId]) {
-      data[trackId].nodeMap[nodeId].status = status;
-      localStorage.setItem('waypoint-mock-tracks', JSON.stringify(data));
-    }
-    return { success: true };
-  },
-  chatWithNode: async (trackId, nodeId, query) => {
-    await delay(1000);
-    return { success: true, answer: `(Mock Mode) This is a simulated AI response to your question: "${query}". Switch to VITE_USE_MOCK=false for real answers.` };
-  },
-  adaptRoadmap: async (trackId, nodeId, feedback) => {
-    await delay(1500);
-    const stored = localStorage.getItem('waypoint-mock-tracks');
-    const data = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(TRACKS));
-    if (data[trackId] && data[trackId].nodeMap[nodeId]) {
-      data[trackId].nodeMap[nodeId].title += (feedback === 'easy' ? ' (Fast Track)' : ' (Adapted)');
-      localStorage.setItem('waypoint-mock-tracks', JSON.stringify(data));
-      return { success: true, roadmap: data[trackId] };
-    }
-    return { success: false, message: 'Track not found' };
-  },
-  deleteRoadmap: async (trackId) => {
-    await delay(500);
-    const stored = localStorage.getItem('waypoint-mock-tracks');
-    const data = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(TRACKS));
-    if (data[trackId]) {
-      delete data[trackId];
-      localStorage.setItem('waypoint-mock-tracks', JSON.stringify(data));
-      return { success: true };
-    }
-    return { success: false, message: 'Track not found' };
-  },
-  generalChat: async (messages) => {
-    await delay(1000);
-    return { success: true, message: '(Mock Mode) This is a simulated response to your general query. Switch VITE_USE_MOCK=false for real answers.' };
-  },
-  getUserProfile: async () => {
-    await delay(500);
-    return {
-      success: true,
-      profile: {
-        id: 'user-001',
-        name: 'Prashant',
-        email: 'prashant@example.com',
-        targetRole: 'Machine Learning Engineer',
-        skillLevel: 'beginner',
-        weeklyTimeHours: 6,
-        learningStyle: 'project-first',
-        pastExperience: 'Basic Python knowledge',
-        isOnboarded: false,
-        stats: {
-          xp: 2340,
-          streak: 12
-        },
-        heatmapData: [] // Would fall back to generated
-      }
-    };
-  },
-};
-
 // ─── Real implementation (matches docs/backend/API-Contract.md) ───
 // Persist the bearer token returned by login/signup so subsequent calls are authed.
 function persistToken(res) {
@@ -255,6 +72,8 @@ const real = {
     http('/api/auth/login', { method: 'POST', body: { email, password } }).then(persistToken),
   signup: (email, password) =>
     http('/api/auth/signup', { method: 'POST', body: { email, password } }).then(persistToken),
+  googleAuth: (email, name) =>
+    http('/api/auth/google', { method: 'POST', body: { email, name } }).then(persistToken),
   submitOnboarding: (profileData) =>
     http('/api/onboarding/confirm', { method: 'POST', body: profileData }),
   onboardingChat: (messages, roleId) =>
@@ -279,10 +98,10 @@ const real = {
   getUserProfile: () => http('/api/user/profile'),
 };
 
-// The one export the app consumes. Flip VITE_USE_MOCK to switch.
-export const api = USE_MOCK ? mock : real;
+// The one export the app consumes. Mock has been completely removed to enforce separation of concerns.
+export const api = real;
 
-// Lets logout drop the stored bearer token (no-op in mock mode / when none set).
+// Lets logout drop the stored bearer token.
 export function clearAuthToken() {
   if (typeof localStorage !== 'undefined') localStorage.removeItem(TOKEN_KEY);
 }

@@ -11,8 +11,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from config import FRONTEND_ORIGIN
-from database import init_db
+from core.config import FRONTEND_ORIGIN
+from db.database import init_db
 
 # Import routers
 from routers.auth_routes import router as auth_router
@@ -57,9 +57,8 @@ app.include_router(chat_router)
 # ─── Startup ───
 @app.on_event("startup")
 def on_startup():
-    """Initialize database tables on server start."""
-    init_db()
-    print("[OK] WayPoint API started - database initialized")
+    """Server start."""
+    print("[OK] WayPoint API started - database initialized (skipped create_all)")
     print(f"[OK] CORS allowed: {FRONTEND_ORIGIN}, localhost:5173")
 
 
