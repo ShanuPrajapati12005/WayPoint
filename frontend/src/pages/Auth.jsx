@@ -64,6 +64,9 @@ export default function Auth() {
   const { setUserProfile } = useApp();
 
   const [isLogin, setIsLogin] = React.useState(searchParams.get("mode") === "login");
+  const [forgotStep, setForgotStep] = React.useState(0);
+  const [otp, setOtp] = React.useState("");
+  const [successMsg, setSuccessMsg] = React.useState("");
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -75,22 +78,88 @@ export default function Auth() {
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const pwValid = password.length >= 6;
   const nameValid = name.trim().length > 1;
+  const otpValid = /^\d{6}$/.test(otp);
   const formValid = emailValid && pwValid && (isLogin || nameValid);
 
   const panel = isLogin ? PANELS.login : PANELS.signup;
 
   const markTouched = (f) => setTouched((t) => ({ ...t, [f]: true }));
 
+  const resetForgot = () => {
+    setForgotStep(0);
+    setOtp("");
+    setPassword("");
+    setError("");
+    setSuccessMsg("");
+    setTouched({});
+  };
+
   const submit = async (e) => {
     e.preventDefault();
-    setTouched({ name: true, email: true, password: true });
     setError("");
+    setSuccessMsg("");
+
+    // ── Forgot Step 1: Send OTP ──
+    if (forgotStep === 1) {
+      setTouched({ email: true });
+      if (!emailValid) return;
+      setLoading(true);
+      try {
+        await api.forgotPassword(email);
+        setSuccessMsg("If an account exists, an OTP has been sent. Check your email (or server logs).");
+        setPassword("");
+        setOtp("");
+        setTouched({});
+        setForgotStep(2);
+      } catch (err) {
+        setError(err.message || "Failed to send OTP.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // ── Forgot Step 2: Verify OTP + Reset Password ──
+    if (forgotStep === 2) {
+      setTouched({ otp: true, password: true });
+      if (!otpValid || !pwValid) return;
+      setLoading(true);
+      try {
+        await api.resetPassword(email, otp, password);
+        setSuccessMsg("Password updated successfully! You can now log in.");
+        resetForgot();
+        setSuccessMsg("Password updated! Please log in with your new password.");
+      } catch (err) {
+        setError(err.message || "Failed to reset password.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // ── Normal Login / Signup ──
+    setTouched({ name: true, email: true, password: true });
     if (!formValid) return;
     setLoading(true);
     try {
       if (isLogin) {
-        await api.login(email, password);
-        window.location.href = "/dashboard";
+        const res = await api.login(email, password);
+        // Update the global profile with data from the login response
+        if (res?.user) {
+          setUserProfile((p) => ({
+            ...p,
+            id: res.user.id,
+            name: res.user.name || email.split("@")[0],
+            email: res.user.email || email,
+            isOnboarded: res.user.isOnboarded,
+          }));
+        }
+        // Route based on onboarding status
+        if (res?.user?.isOnboarded) {
+          navigate("/dashboard");
+        } else {
+          navigate("/onboarding");
+        }
       } else {
         await api.signup(email, password, name.trim());
         window.location.href = "/onboarding";
@@ -104,8 +173,7 @@ export default function Auth() {
 
   const toggleMode = () => {
     setIsLogin((v) => !v);
-    setError("");
-    setTouched({});
+    resetForgot();
   };
 
   return (
@@ -186,7 +254,7 @@ export default function Auth() {
 
           <form onSubmit={submit} className="space-y-4" noValidate>
             <AnimatePresence initial={false}>
-              {!isLogin && (
+              {forgotStep === 0 && !isLogin && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
@@ -218,81 +286,179 @@ export default function Auth() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => markTouched("email")}
-                aria-invalid={touched.email && email.length > 0 && !emailValid}
+                aria-invalid={touched.email && !emailValid}
+                disabled={forgotStep === 2}
               />
               {touched.email && email.length > 0 && !emailValid && (
                 <p className="text-xs text-destructive">Enter a valid email address.</p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                {isLogin && (
-                  <button type="button" className="text-xs text-primary hover:underline">
-                    Forgot?
-                  </button>
-                )}
-              </div>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPw ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onBlur={() => markTouched("password")}
-                  aria-invalid={touched.password && password.length > 0 && !pwValid}
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-                  aria-label={showPw ? "Hide password" : "Show password"}
+            <AnimatePresence initial={false}>
+              {forgotStep === 2 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-2 overflow-hidden px-1 pb-1 -mx-1 pt-2"
                 >
-                  {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
-              </div>
-              {touched.password && password.length > 0 && !pwValid && (
-                <p className="text-xs text-destructive">At least 6 characters.</p>
+                  <Label htmlFor="otp">Reset Code (OTP)</Label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    placeholder="Enter 6-digit code"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    onBlur={() => markTouched("otp")}
+                    aria-invalid={touched.otp && !otpValid}
+                  />
+                  {touched.otp && !otpValid && (
+                    <p className="text-xs text-destructive">Enter a valid 6-digit OTP.</p>
+                  )}
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
+
+            <AnimatePresence initial={false}>
+              {forgotStep !== 1 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-2 overflow-hidden px-1 pb-1 -mx-1 pt-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">{forgotStep === 2 ? "New Password" : "Password"}</Label>
+                    {isLogin && forgotStep === 0 && (
+                      <button 
+                        type="button" 
+                        onClick={() => { setForgotStep(1); setError(""); setSuccessMsg(""); setTouched({}); setPassword(""); setOtp(""); }} 
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Forgot?
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPw ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onBlur={() => markTouched("password")}
+                      aria-invalid={touched.password && !pwValid}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPw((v) => !v)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                      aria-label={showPw ? "Hide password" : "Show password"}
+                    >
+                      {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                  {touched.password && !pwValid && (
+                    <p className="text-xs text-destructive">At least 6 characters.</p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {error && (
               <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {error}
               </p>
             )}
+            
+            {successMsg && (
+              <p className="rounded-lg bg-green-500/10 px-3 py-2 text-sm text-green-600 dark:bg-green-500/20 dark:text-green-400">
+                {successMsg}
+              </p>
+            )}
 
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading && <Loader2 className="size-4 animate-spin" />}
-              {isLogin ? "Log in" : "Create account"}
-            </Button>
+            <div className="flex flex-col gap-3 pt-2">
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading && <Loader2 className="size-4 animate-spin mr-2" />}
+                {forgotStep === 1 ? "Send OTP" : forgotStep === 2 ? "Update Password" : (isLogin ? "Log in" : "Create account")}
+              </Button>
+              
+              {forgotStep > 0 && (
+                <Button type="button" variant="outline" className="w-full" size="lg" onClick={resetForgot} disabled={loading}>
+                  Back to Login
+                </Button>
+              )}
+            </div>
           </form>
 
           {/* Google — moved below the form fields, per the flow */}
-          <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            or continue with
-            <span className="h-px flex-1 bg-border" />
-          </div>
+          <AnimatePresence initial={false}>
+            {forgotStep === 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
+                  <span className="h-px flex-1 bg-border" />
+                  or continue with
+                  <span className="h-px flex-1 bg-border" />
+                </div>
 
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => navigate(isLogin ? "/dashboard" : "/onboarding")}
-          >
-            <GoogleIcon className="size-4" />
-            Continue with Google
-          </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  disabled={loading}
+                  onClick={async () => {
+                    setError("");
+                    setLoading(true);
+                    try {
+                      // In a real implementation this would use Google OAuth popup/redirect
+                      // to get the user's email. For now we use the email from the form field.
+                      const googleEmail = email || "";
+                      if (!googleEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(googleEmail)) {
+                        setError("Please enter your email address first, then click Continue with Google.");
+                        setLoading(false);
+                        return;
+                      }
+                      const res = await api.googleAuth(googleEmail, name.trim() || googleEmail.split("@")[0]);
+                      if (res?.user) {
+                        setUserProfile((p) => ({
+                          ...p,
+                          id: res.user.id,
+                          name: res.user.name || googleEmail.split("@")[0],
+                          email: res.user.email || googleEmail,
+                          isOnboarded: res.user.isOnboarded,
+                        }));
+                      }
+                      // Route based on onboarding status
+                      if (res?.user?.isOnboarded) {
+                        navigate("/dashboard");
+                      } else {
+                        navigate("/onboarding");
+                      }
+                    } catch (err) {
+                      setError(err.message || "Google sign-in failed. Please try again.");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  <GoogleIcon className="size-4" />
+                  Continue with Google
+                </Button>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            {isLogin ? "New to WayPoint?" : "Already have an account?"}{" "}
-            <button onClick={toggleMode} className="font-medium text-primary hover:underline">
-              {isLogin ? "Create an account" : "Log in"}
-            </button>
-          </p>
+                <p className="mt-6 text-center text-sm text-muted-foreground">
+                  {isLogin ? "New to WayPoint?" : "Already have an account?"}{" "}
+                  <button onClick={toggleMode} className="font-medium text-primary hover:underline">
+                    {isLogin ? "Create an account" : "Log in"}
+                  </button>
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
