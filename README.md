@@ -1,136 +1,148 @@
-# WayPoint — Career Readiness & Adaptive Roadmap Recommender
+# 🚀 WayPoint — Career Readiness & Adaptive Roadmap Recommender
 
-WayPoint is an interactive learning platform that evaluates user skills and generates dynamically adaptive roadmaps utilizing a React frontend, FastAPI backend, and deterministic/LLM integration.
+![WayPoint Banner](https://img.shields.io/badge/Status-Active-success.svg) ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi) ![React](https://img.shields.io/badge/Frontend-React_Vite-61DAFB?logo=react) ![Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E?logo=supabase) ![Groq](https://img.shields.io/badge/AI-Groq-black)
 
-This guide provides step-by-step instructions to get the application running on a new device after extracting the project zip archive.
-
----
-
-## Prerequisites
-
-Before setting up the project, ensure you have the following installed on your system:
-* **Node.js** (v18.0.0 or higher)
-* **npm** (comes packaged with Node.js)
-* **Python** (v3.10.x or v3.11.x)
-* **Git** (optional, for version management)
+**WayPoint** is an intelligent, interactive learning platform designed for hackathons and production alike. It evaluates user skills and generates dynamically adaptive roadmaps tailored specifically to the learner's goals. Powered by a sleek React frontend, a lightning-fast FastAPI backend, and state-of-the-art LLMs via Groq, WayPoint ensures you always know your next step.
 
 ---
 
-## 1. Backend Setup (FastAPI)
+## ✨ Key Features of WayPoint
+- 🧠 **AI-Generated Roadmaps:** Customized learning paths powered by Groq LLMs that analyze your skills, time availability, and career goals to build the perfect curriculum.
+- ⚡ **Low-Latency Deterministic Adaptation:** Real-time feedback adaptation (Easy, Medium, Hard) that re-routes your path in under 1ms without hitting API rate limits.
+- 📊 **Dynamic Skill Tracking:** Automatically tracks your XP, streak, and skill proficiency (e.g. Python, SQL) as you complete nodes.
+- 🎨 **Beautiful UI/UX:** Built with TailwindCSS, Framer Motion, and Glassmorphism for a premium, highly professional feel.
+- 🛡️ **Offline Demo Mode:** A built-in mock mode to ensure your hackathon pitch never fails due to Wi-Fi drops.
+- 👤 **Professional User Profiles:** Centralized dashboard for managing your identity, education, experience, and career aspirations.
 
-The backend manages data persistence in SQLite, handles user authentication, and provides the programmatic feedback adaptation logic.
+---
 
-### Steps:
-1. Open a terminal and navigate to the `backend/` directory:
+## 🛠️ Prerequisites
+
+Before you start, make sure you have the following installed on your machine:
+- **Node.js** (v18.0.0 or higher) & **npm**
+- **Python** (v3.10.x or v3.11.x)
+- **Git** (optional, for cloning)
+
+---
+
+## 🚀 Step-by-Step Setup Guide
+
+Follow these instructions carefully to run the project flawlessly on your local machine.
+
+### 1️⃣ Backend Setup (FastAPI)
+
+The backend handles the core logic, AI generation, user authentication, and database connections.
+
+1. **Open a terminal** and navigate to the backend folder:
    ```bash
    cd backend
    ```
 
-2. Create a virtual environment:
+2. **Create a Python Virtual Environment**:
    * **Windows**:
      ```bash
      python -m venv .venv
      ```
-   * **macOS/Linux**:
+   * **macOS / Linux**:
      ```bash
      python3 -m venv .venv
      ```
 
-3. Activate the virtual environment:
+3. **Activate the Virtual Environment**:
    * **Windows (PowerShell)**:
      ```powershell
-     .venv\Scripts\Activate.ps1
+     .\.venv\Scripts\Activate.ps1
      ```
-   * **Windows (CMD)**:
+   * **Windows (Command Prompt)**:
      ```cmd
-     .venv\Scripts\activate.bat
+     .\.venv\Scripts\activate.bat
      ```
-   * **macOS/Linux**:
+   * **macOS / Linux**:
      ```bash
      source .venv/bin/activate
      ```
 
-4. Install the required dependencies:
+4. **Install Dependencies**:
+   *(Make sure your virtual environment is activated before running this!)*
    ```bash
    pip install -r requirements.txt
    ```
+   > 💡 **Troubleshooting Tip:** If you are connecting to a PostgreSQL database (like Supabase) and encounter a `ModuleNotFoundError: No module named 'psycopg2'` error, simply run:
+   > `pip install psycopg2-binary`
 
-5. Configure Environment Variables:
-   Create a file named `.env` in the `backend/` folder and paste the following parameters (replace the Groq API key with your own):
+5. **Configure Environment Variables**:
+   Create a `.env` file inside the `backend/` directory and add the following keys. (Replace the database and Groq keys with your actual credentials):
    ```env
    GROQ_API_KEY=your_groq_api_key_here
    GROQ_MODEL=qwen/qwen3.8-27b
    JWT_SECRET=waypoint-super-secret-jwt-key-change-in-production-2024
    FRONTEND_ORIGIN=http://localhost:5173
-   DATABASE_URL=sqlite:///./waypoint.db
+   
+   # Use Supabase PostgreSQL or fallback to local SQLite
+   DATABASE_URL=postgresql://postgres:[password]@[host]:6543/postgres
    ```
 
-6. Start the backend development server:
+6. **Start the Backend Server**:
    ```bash
    uvicorn main:app --reload --port 8000
    ```
-   The backend API will now be running on **`http://localhost:8000`**.
-
-> [!NOTE]
-> On startup, FastAPI will automatically initialize the local SQLite database (`waypoint.db`) and create all required tables. No manual database setup is necessary.
+   ✅ The backend API is now running on **`http://localhost:8000`**.
 
 ---
 
-## 2. Frontend Setup (React + Vite)
+### 2️⃣ Frontend Setup (React + Vite)
 
-The frontend provides the interactive dashboard, directed React Flow learning path canvas, and AI Guide sidebar.
+The frontend contains the interactive dashboard, learning paths, and user profiles.
 
-### Steps:
-1. Open a new terminal window and navigate to the `frontend/` directory:
+1. **Open a NEW terminal window** (keep the backend running in the first one) and navigate to the frontend folder:
    ```bash
    cd frontend
    ```
 
-2. Install the node packages and dependencies:
+2. **Install Node Packages**:
    ```bash
    npm install
    ```
 
-3. Configure Environment Variables:
-   Create a file named `.env` in the `frontend/` folder and ensure it contains the following configuration:
+3. **Configure Environment Variables**:
+   Create a `.env` file inside the `frontend/` directory with this configuration:
    ```env
    # Toggle the mock data layer: 
-   # false = connect to real FastAPI backend (recommended for demo)
-   # true  = run offline using local mock JSON datasets
+   # false = connect to the real FastAPI backend 
+   # true  = run offline using local mock JSON (Safe Demo Mode)
    VITE_USE_MOCK=false
    
    # Backend URL
    VITE_API_BASE_URL=http://localhost:8000
    ```
 
-4. Start the frontend development server:
+4. **Start the Frontend Server**:
    ```bash
    npm run dev
    ```
-   The frontend application will now be running on **`http://localhost:5173`**.
+   ✅ The frontend is now running on **`http://localhost:5173`**.
 
 ---
 
-## 3. Important Demo & Hackathon Instructions
+## 🎤 Important Hackathon / Pitch Tips
 
-To ensure a smooth presentation and understand the architecture, keep these features in mind:
+To ensure your presentation goes smoothly, leverage these built-in features:
 
-### 💡 Low-Latency Programmatic Adaptation
-When a user clicks on an uncompleted node and selects feedback (**Easy**, **Medium**, **Too Hard**, or **Skip**), the roadmap adapts **deterministically** on the backend in **less than 1 millisecond**.
-* **Easy**: Shortens upcoming durations and appends `(Accelerated)` to titles.
-* **Medium**: Retains pacing and appends `(Optimized)` to titles.
-* **Too hard**: Extends upcoming durations and appends `(Foundations)` to titles.
-* **Skip**: Marks the selected node complete/skipped and appends `(Re-planned)` to subsequent nodes.
-* *This avoids hitting LLM rate limits (TPM thresholds) and eliminates network lag during live presentations.*
+### 🛡️ Fail-Safe Offline Mode (Mock Data)
+If the venue Wi-Fi drops or your Groq API rate-limits you during the presentation, you can run the app offline!
+1. Change `VITE_USE_MOCK=true` in your `frontend/.env` file.
+2. Restart the frontend server. 
+*The app will instantly switch to pre-cached demo data, keeping the UI perfectly functional for your pitch.*
 
-### 🔑 Preloaded Test Accounts
-To bypass onboarding and demonstrate existing roadmaps instantly, log in with these credentials:
-* **Email**: `admin@nexora.com`
-* **Password**: `password123`
-This user has active tracks generated for **Java Backend** and **Machine Learning**.
+### ⚡ Ultra-Fast Adaptive Feedback
+When a user clicks on an uncompleted node and gives feedback (e.g., *Too Hard*, *Easy*), the roadmap adapts **deterministically** on the backend in under **1 millisecond**. 
+- **Easy:** Shrinks durations, adds `(Accelerated)` to titles.
+- **Too Hard:** Expands durations, adds `(Foundations)` to titles.
+*This guarantees zero lag during live demos and saves your LLM quota!*
 
-### 📴 Offline Fallback Mode
-If you encounter network connectivity issues or do not have a Groq API key:
-1. Set `VITE_USE_MOCK=true` in `frontend/.env`.
-2. Restart the frontend server.
-The entire application will run offline utilizing cached local data assets without requiring a running backend.
+### 🔑 Preloaded Test Account
+Don't waste time typing in forms during the presentation. Use the pre-seeded admin account to jump straight to the action:
+* **Email:** `admin@waypoint.com`
+* **Password:** `password123`
+
+---
