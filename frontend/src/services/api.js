@@ -74,6 +74,10 @@ const real = {
     http('/api/auth/signup', { method: 'POST', body: { email, password } }).then(persistToken),
   googleAuth: (email, name) =>
     http('/api/auth/google', { method: 'POST', body: { email, name } }).then(persistToken),
+  forgotPassword: (email) =>
+    http('/api/auth/forgot-password', { method: 'POST', body: { email } }),
+  resetPassword: (email, otp, newPassword) =>
+    http('/api/auth/reset-password', { method: 'POST', body: { email, otp, new_password: newPassword } }),
   submitOnboarding: (profileData) =>
     http('/api/onboarding/confirm', { method: 'POST', body: profileData }),
   onboardingChat: (messages, roleId) =>
