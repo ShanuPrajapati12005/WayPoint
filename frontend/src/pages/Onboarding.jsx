@@ -348,17 +348,24 @@ export default function Onboarding() {
   // Build final profile data for confirm
   const finalProfile = React.useMemo(() => {
     const ep = extractedProfile || {};
+    
+    let parsedHours = hours;
+    if (ep.weeklyTimeHours) {
+      const match = String(ep.weeklyTimeHours).match(/\d+/);
+      if (match) parsedHours = parseInt(match[0], 10);
+    }
+
     return {
-      name: userProfile.name,
+      name: userProfile?.name || "Learner",
       targetRole: roleMeta?.label || "Machine Learning",
       skillLevel: ep.skillLevel || level,
-      weeklyTimeHours: ep.weeklyTimeHours || hours,
+      weeklyTimeHours: parsedHours,
       learningStyle: ep.learningStyle || "mixed",
       pastExperience: ep.pastExperience || "Not specified",
       careerGoals: ep.careerGoals || "",
       detailedContext: ep.detailedContext || {},
     };
-  }, [extractedProfile, userProfile.name, roleMeta, level, hours]);
+  }, [extractedProfile, userProfile, roleMeta, level, hours]);
 
   const confirm = async () => {
     setSaving(true);
@@ -370,6 +377,12 @@ export default function Onboarding() {
         showToast("Profile saved", { description: "Let's verify your skills next." });
         navigate("/skill-check");
       }
+    } catch (error) {
+      console.error("Onboarding submit failed:", error);
+      showToast("Setup Failed", { 
+        description: error.message || "Failed to save profile.", 
+        variant: "destructive" 
+      });
     } finally {
       setSaving(false);
     }

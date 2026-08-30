@@ -117,8 +117,8 @@ export default function TrackSelector() {
 
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onSelect={() => navigate("/add-skill")}
-          className="gap-3 font-medium text-primary focus:text-primary"
+          onSelect={() => navigate("/onboarding")}
+          className="cursor-pointer gap-2 py-2 text-primary focus:bg-primary/10 focus:text-primary"
         >
           <span className="flex size-5 items-center justify-center rounded-full bg-primary/10">
             <Plus className="size-3 !text-primary" />

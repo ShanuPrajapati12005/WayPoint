@@ -243,7 +243,7 @@ function LearnerProfileCard({ userProfile }) {
           <CardTitle className="text-base">Learner Profile</CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 pt-0">
+      <CardContent className="space-y-3 pt-0 max-h-[240px] overflow-y-auto pr-2">
         {profileItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -398,7 +398,7 @@ export default function Dashboard() {
               <p className="text-xs text-muted-foreground">{track.label} profile vs required gaps</p>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-6">
+          <CardContent className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start p-6">
             
             {/* Left side: Normal Radar Map */}
             <div className="w-full flex-col flex items-center justify-start min-h-[300px]">
@@ -417,7 +417,7 @@ export default function Dashboard() {
             </div>
 
             {/* Right side: Specific Skill Gaps */}
-            <div className="w-full flex-col flex justify-center min-h-[300px]">
+            <div className="w-full flex-col flex justify-start pt-2 min-h-[300px]">
               <h3 className="mb-4 font-display text-sm font-semibold text-muted-foreground">Specific Skill Gaps</h3>
               <SkillGapBars track={track} />
             </div>

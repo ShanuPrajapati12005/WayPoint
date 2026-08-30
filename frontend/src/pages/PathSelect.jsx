@@ -56,7 +56,7 @@ export default function PathSelect() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 pt-10 pb-28 sm:px-6">
       <div className="mb-8 text-center">
         <Badge variant="accent" className="mb-3">
           <Sparkles className="size-3.5" /> Your Active Paths
@@ -79,9 +79,11 @@ export default function PathSelect() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.08 }}
             >
-              <button
+              <div
                 onClick={() => setSelected(path.id)}
-                className="block h-full w-full text-left outline-none"
+                role="button"
+                tabIndex={0}
+                className="block h-full w-full text-left outline-none cursor-pointer"
               >
                 <Card
                   className={cn(
@@ -152,15 +154,16 @@ export default function PathSelect() {
                     </div>
                   </CardContent>
                 </Card>
-              </button>
+              </div>
             </motion.div>
           );
         })}
       </div>
 
-      <div className="mt-8 flex justify-center">
-        <Button size="xl" onClick={proceed}>
-          View Roadmap <ArrowRight className="size-4" />
+      {/* Sticky Bottom Bar */}
+      <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <Button size="lg" onClick={proceed} className="pointer-events-auto rounded-full px-8 shadow-xl shadow-primary/25">
+          View Roadmap <ArrowRight className="size-4 ml-1.5" />
         </Button>
       </div>
     </div>
