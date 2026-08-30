@@ -668,7 +668,7 @@ export default function Roadmap() {
             <div className="flex items-center gap-1 rounded-full border-2 border-border bg-card p-1 shadow-sm shrink-0">
               {[
                 { id: "flow", label: "Flow", icon: RouteIcon },
-                { id: "tree", label: "Tree", icon: GitFork },
+                { id: "tree", label: "Modules", icon: GitFork },
               ].map((v) => {
                 const Icon = v.icon;
                 const active = roadmapView === v.id;

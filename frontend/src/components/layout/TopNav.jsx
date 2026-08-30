@@ -10,6 +10,7 @@ import {
   Sun,
   Moon,
   Search,
+  GitFork,
 } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import TrackSelector from "@/components/common/TrackSelector";
@@ -29,7 +30,12 @@ const TABS = [
 export default function TopNav() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, toggleTheme, setCommandOpen, demoMode } = useApp();
+  const { theme, toggleTheme, setCommandOpen, demoMode, setRoadmapView } = useApp();
+
+  const handleJumpToModules = () => {
+    setRoadmapView("tree");
+    navigate("/roadmap");
+  };
 
   return (
     /* `wide` = roomier compressed width. This nav carries a lot (logo + 4 tabs +
@@ -89,29 +95,39 @@ export default function TopNav() {
       </nav>
 
       {/* Right cluster */}
-      <div className="flex shrink-0 items-center gap-2">
-        <button
-          onClick={() => setCommandOpen(true)}
-          className="hidden shrink-0 items-center gap-2 rounded-lg border border-border bg-card/60 py-1.5 pl-2.5 pr-2 text-sm text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground sm:flex"
-          aria-label="Search — open command palette"
-          title="Search (⌘K)"
-        >
-          <Search className="size-4 shrink-0" />
-          <span className="hidden whitespace-nowrap lg:inline">Search…</span>
-          <kbd className="ml-1 hidden whitespace-nowrap rounded border border-border bg-background/70 px-1.5 py-0.5 font-mono text-[10px] leading-none lg:inline">
-            ⌘K
-          </kbd>
-        </button>
+      <div className="flex shrink-0 items-center gap-3.5">
+        {!location.pathname.startsWith("/onboarding") && (
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="hidden shrink-0 shadow-[0_2px_8px_rgba(91,95,239,0.35)] sm:flex gap-1.5 h-8 bg-primary hover:bg-primary/90 px-3 transition-all"
+            onClick={handleJumpToModules}
+          >
+            <GitFork className="size-3.5" />
+            <span>Modules</span>
+          </Button>
+        )}
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0"
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-        >
-          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-        </Button>
+        {/* Compact Utilities Group */}
+        <div className="hidden shrink-0 items-center rounded-lg border border-border bg-card/60 shadow-sm sm:flex overflow-hidden h-8">
+          <button
+            onClick={() => setCommandOpen(true)}
+            className="flex h-full items-center justify-center px-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground border-r border-border"
+            aria-label="Search — open command palette"
+            title="Search (⌘K)"
+          >
+            <Search className="size-4" />
+          </button>
+
+          <button
+            onClick={toggleTheme}
+            className="flex h-full items-center justify-center px-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            aria-label="Toggle theme"
+            title="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </button>
+        </div>
 
         {!location.pathname.startsWith("/onboarding") && <TrackSelector />}
 

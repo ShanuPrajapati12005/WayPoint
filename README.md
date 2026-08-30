@@ -1,136 +1,78 @@
 # WayPoint — Career Readiness & Adaptive Roadmap Recommender
 
-WayPoint is an interactive learning platform that evaluates user skills and generates dynamically adaptive roadmaps utilizing a React frontend, FastAPI backend, and deterministic/LLM integration.
+WayPoint is an interactive, AI-powered learning platform that evaluates user skills and generates dynamically adaptive roadmaps utilizing a React frontend, FastAPI backend, Supabase (PostgreSQL), and Groq LLMs.
 
-This guide provides step-by-step instructions to get the application running on a new device after extracting the project zip archive.
-
----
-
-## Prerequisites
-
-Before setting up the project, ensure you have the following installed on your system:
-* **Node.js** (v18.0.0 or higher)
-* **npm** (comes packaged with Node.js)
-* **Python** (v3.10.x or v3.11.x)
-* **Git** (optional, for version management)
+This guide provides instructions to get the application running on a new device.
 
 ---
 
-## 1. Backend Setup (FastAPI)
+## ⚡ 1-Click Setup (For Windows)
 
-The backend manages data persistence in SQLite, handles user authentication, and provides the programmatic feedback adaptation logic.
+If you are on Windows, we have provided a batch script to automate 90% of the setup. 
 
-### Steps:
-1. Open a terminal and navigate to the `backend/` directory:
+**Prerequisites:** Ensure you have [Node.js](https://nodejs.org/) and [Python](https://www.python.org/) installed on your system.
+
+### Step 1: Add Environment Variables
+Before running the setup, you must configure the environment variables:
+1. Go to the `backend/` folder and copy `.env.example` to a new file named `.env`.
+2. Go to the `frontend/` folder and copy `.env.example` to a new file named `.env`.
+3. Paste the secret keys (provided by your team via WhatsApp/Discord) into these new `.env` files.
+
+### Step 2: Run the Script
+Double-click the **`setup_and_run.bat`** file located in the root of the project.
+This script will automatically:
+- Create a Python virtual environment and install backend dependencies.
+- Install all frontend NPM dependencies.
+- Launch the FastAPI Backend Server on `http://localhost:8000`.
+- Launch the Vite Frontend Server on `http://localhost:5173`.
+
+---
+
+## 🛠 Manual Setup (For Mac/Linux or Custom Environments)
+
+If you cannot use the `.bat` file, follow these steps to start the servers manually.
+
+### 1. Backend Setup (FastAPI)
+1. Navigate to the `backend/` directory:
    ```bash
    cd backend
    ```
-
-2. Create a virtual environment:
-   * **Windows**:
-     ```bash
-     python -m venv .venv
-     ```
-   * **macOS/Linux**:
-     ```bash
-     python3 -m venv .venv
-     ```
-
-3. Activate the virtual environment:
-   * **Windows (PowerShell)**:
-     ```powershell
-     .venv\Scripts\Activate.ps1
-     ```
-   * **Windows (CMD)**:
-     ```cmd
-     .venv\Scripts\activate.bat
-     ```
-   * **macOS/Linux**:
-     ```bash
-     source .venv/bin/activate
-     ```
-
-4. Install the required dependencies:
+2. Create and activate a virtual environment:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-
-5. Configure Environment Variables:
-   Create a file named `.env` in the `backend/` folder and paste the following parameters (replace the Groq API key with your own):
-   ```env
-   GROQ_API_KEY=your_groq_api_key_here
-   GROQ_MODEL=qwen/qwen3.8-27b
-   JWT_SECRET=waypoint-super-secret-jwt-key-change-in-production-2024
-   FRONTEND_ORIGIN=http://localhost:5173
-   DATABASE_URL=sqlite:///./waypoint.db
-   ```
-
-6. Start the backend development server:
+4. Setup `.env`: Create a `.env` file based on `.env.example` and paste the required keys.
+5. Start the backend server:
    ```bash
    uvicorn main:app --reload --port 8000
    ```
-   The backend API will now be running on **`http://localhost:8000`**.
 
-> [!NOTE]
-> On startup, FastAPI will automatically initialize the local SQLite database (`waypoint.db`) and create all required tables. No manual database setup is necessary.
-
----
-
-## 2. Frontend Setup (React + Vite)
-
-The frontend provides the interactive dashboard, directed React Flow learning path canvas, and AI Guide sidebar.
-
-### Steps:
-1. Open a new terminal window and navigate to the `frontend/` directory:
+### 2. Frontend Setup (React + Vite)
+1. Navigate to the `frontend/` directory:
    ```bash
    cd frontend
    ```
-
-2. Install the node packages and dependencies:
+2. Install Node dependencies:
    ```bash
    npm install
    ```
-
-3. Configure Environment Variables:
-   Create a file named `.env` in the `frontend/` folder and ensure it contains the following configuration:
-   ```env
-   # Toggle the mock data layer: 
-   # false = connect to real FastAPI backend (recommended for demo)
-   # true  = run offline using local mock JSON datasets
-   VITE_USE_MOCK=false
-   
-   # Backend URL
-   VITE_API_BASE_URL=http://localhost:8000
-   ```
-
+3. Setup `.env`: Create a `.env` file based on `.env.example` and paste the required keys.
 4. Start the frontend development server:
    ```bash
    npm run dev
    ```
-   The frontend application will now be running on **`http://localhost:5173`**.
 
 ---
 
-## 3. Important Demo & Hackathon Instructions
+## 🚀 Important Hackathon Notes
 
-To ensure a smooth presentation and understand the architecture, keep these features in mind:
+* **Database**: The project uses **Supabase (PostgreSQL)** for the database. No local database setup is required as long as the Supabase keys are correctly placed in the `.env` file.
+* **Authentication**: Authentication is handled via standard custom JWT and Google Auth.
+* **AI Generation**: Path generation leverages the Groq API (Llama/Qwen models) for ultra-fast, deterministic JSON outputs.
 
-### 💡 Low-Latency Programmatic Adaptation
-When a user clicks on an uncompleted node and selects feedback (**Easy**, **Medium**, **Too Hard**, or **Skip**), the roadmap adapts **deterministically** on the backend in **less than 1 millisecond**.
-* **Easy**: Shortens upcoming durations and appends `(Accelerated)` to titles.
-* **Medium**: Retains pacing and appends `(Optimized)` to titles.
-* **Too hard**: Extends upcoming durations and appends `(Foundations)` to titles.
-* **Skip**: Marks the selected node complete/skipped and appends `(Re-planned)` to subsequent nodes.
-* *This avoids hitting LLM rate limits (TPM thresholds) and eliminates network lag during live presentations.*
-
-### 🔑 Preloaded Test Accounts
-To bypass onboarding and demonstrate existing roadmaps instantly, log in with these credentials:
-* **Email**: `admin@nexora.com`
-* **Password**: `password123`
-This user has active tracks generated for **Java Backend** and **Machine Learning**.
-
-### 📴 Offline Fallback Mode
-If you encounter network connectivity issues or do not have a Groq API key:
-1. Set `VITE_USE_MOCK=true` in `frontend/.env`.
-2. Restart the frontend server.
-The entire application will run offline utilizing cached local data assets without requiring a running backend.
+*(Make sure to always keep your `.env` files out of Git commits!)*

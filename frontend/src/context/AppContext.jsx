@@ -383,9 +383,9 @@ export function AppProvider({ children }) {
       if (modules.length > 0) {
         const allDone = modules.every((m) => m.status === 'completed');
         if (!allDone) {
-          // Don't complete — redirect to tree view to finish modules
+          // Don't complete — redirect to modules view to finish modules
           sonnerToast.error('Complete all modules first', {
-            description: 'Open Tree view to check off pending topics.',
+            description: 'Open Modules view to check off pending topics.',
           });
           setRoadmapView('tree');
           setExpandedNodeId(nodeId);

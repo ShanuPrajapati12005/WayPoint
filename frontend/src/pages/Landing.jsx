@@ -56,7 +56,7 @@ const STEPS = [
 
 const FEATURES = [
   { icon: ShieldCheck, title: "Skill verification", desc: "Evidence-based readiness from real assessments, not course-completion %." },
-  { icon: RouteIcon, title: "Adaptive roadmap", desc: "Flow & tree views. Nothing is locked — an AI 'suggested next' guides you." },
+  { icon: RouteIcon, title: "Adaptive roadmap", desc: "Flow & module views. Nothing is locked — an AI 'suggested next' guides you." },
   { icon: Sparkles, title: "AI explanations", desc: "Ask why any node is on your path. Get reasoning, prerequisites, and time-fit." },
   { icon: Radar, title: "Skill-gap radar", desc: "Current vs target across every skill, updated as you complete work." },
   { icon: Gauge, title: "Career simulation", desc: "Drag your weekly hours and watch readiness + time-to-goal recompute live." },

@@ -25,6 +25,7 @@ import Roadmap from './pages/Roadmap';
 import Dashboard from './pages/Dashboard';
 import AddSkill from './pages/AddSkill';
 import FinalAssessment from './pages/FinalAssessment';
+import Profile from './pages/Profile';
 
 // Pages that DON'T show the TopNav
 const NO_NAV_ROUTES = ['/', '/auth'];
@@ -56,6 +57,7 @@ function AppContent() {
             <Route path="/path-select" element={<RequireAuth><PathSelect /></RequireAuth>} />
             <Route path="/roadmap" element={<RequireAuth><Roadmap /></RequireAuth>} />
             <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+            <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
             <Route path="/add-skill" element={<RequireAuth><AddSkill /></RequireAuth>} />
             <Route path="/final-assessment" element={<RequireAuth><FinalAssessment /></RequireAuth>} />
           </Routes>

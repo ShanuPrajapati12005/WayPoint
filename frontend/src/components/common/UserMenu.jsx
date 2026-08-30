@@ -79,7 +79,7 @@ export default function UserMenu() {
           <Plus />
           Add a new skill
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => navigate("/onboarding")} className="gap-2.5">
+        <DropdownMenuItem onSelect={() => navigate("/profile")} className="gap-2.5">
           <Settings />
           Edit my profile
         </DropdownMenuItem>
@@ -94,7 +94,7 @@ export default function UserMenu() {
           <LogOut />
           Log out
         </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
   );
 }
