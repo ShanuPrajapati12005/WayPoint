@@ -19,6 +19,12 @@ import {
   ChevronDown,
   Lock,
   Loader2,
+  Layers,
+  BookOpen,
+  Circle,
+  MessageSquare,
+  PlayCircle,
+  FileText,
 } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import {
@@ -36,16 +42,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/* ─── React Flow custom node ─── */
+/* â”€â”€â”€ React Flow custom node â”€â”€â”€ */
 function WayPointNode({ data }) {
-  const { node, suggested, layout, isLocked } = data;
-  const s = statusInfo(node.status);
+  const { node, suggested, layout, isLocked, onViewModules } = data;
   const stage = stageInfo(node.stage);
+  const modules = node.modules || [];
+  const doneCount = modules.filter((m) => m.status === "completed").length;
+  const totalCount = modules.length;
 
   return (
     <div
       className={cn(
-        "group w-[190px] rounded-xl border-2 bg-card p-3 shadow-sm transition-shadow",
+        "group w-[520px] rounded-xl border-2 bg-card p-5 shadow-sm transition-shadow",
         isLocked ? "opacity-60" : "hover:shadow-md",
         node.status === "in_progress" && "border-primary shadow-[0_6px_20px_rgba(91,95,239,0.18)]",
         node.status === "completed" && "border-success/50",
@@ -59,42 +67,57 @@ function WayPointNode({ data }) {
       <div className="mb-2 flex items-center justify-between">
         <span
           className={cn(
-            "flex size-6 items-center justify-center rounded-full",
+            "flex size-8 items-center justify-center rounded-full",
             node.status === "completed" && "bg-success text-success-foreground",
             node.status === "in_progress" && "bg-primary text-primary-foreground",
             node.status === "not_started" && "bg-secondary"
           )}
         >
-          {node.status === "completed" && <Check className="size-3.5" />}
-          {node.status === "in_progress" && <span className="size-1.5 rounded-full bg-white" />}
+          {node.status === "completed" && <Check className="size-5" />}
+          {node.status === "in_progress" && <span className="size-2 rounded-full bg-white" />}
         </span>
         {isLocked ? (
           <Lock className="size-3.5 text-muted-foreground" />
         ) : suggested ? (
-          <Badge variant="warning" className="px-1.5 py-0 text-[9px]">SUGGESTED</Badge>
+          <Badge variant="warning" className="px-3.5 py-1 text-[15px]">SUGGESTED</Badge>
         ) : (
           <span
-            className="font-mono text-[10px] font-bold"
+            className="font-mono text-2xl font-bold"
             style={{ color: matchColor(node.match) }}
           >
             {node.match}%
           </span>
         )}
       </div>
-      <div className="text-[13px] font-semibold leading-tight text-foreground">{node.title}</div>
-      {node.syllabus && node.syllabus.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1">
-          {node.syllabus.slice(0, 3).map((topic, idx) => (
-            <span key={idx} className="truncate max-w-[170px] text-[10px] bg-accent/50 text-muted-foreground px-1.5 py-0.5 rounded-sm">
-              {topic}
-            </span>
-          ))}
+      <div className="text-3xl font-extrabold leading-tight text-foreground">{node.title}</div>
+      <div className="mt-5 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-4">
+          <Badge variant={stage.variant} className="px-4 py-1.5 text-lg">{stage.label}</Badge>
+          {!isLocked && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onViewModules(); }}
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-6 py-3.5 text-xl font-bold text-white shadow-md shadow-blue-500/20 transition-all hover:scale-[1.03] hover:shadow-lg active:scale-95"
+            >
+              <Layers className="size-6" /> View Modules
+            </button>
+          )}
+        </div>
+        <span className="font-mono text-xl text-muted-foreground">{node.duration}</span>
+      </div>
+      {/* Module progress bar */}
+      {totalCount > 0 && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-3.5">
+            <span className="text-xl font-bold text-muted-foreground">{doneCount}/{totalCount} modules</span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-500"
+              style={{ width: totalCount ? `${(doneCount / totalCount) * 100}%` : "0%" }}
+            />
+          </div>
         </div>
       )}
-      <div className="mt-2 flex items-center justify-between">
-        <Badge variant={stage.variant} className="px-1.5 py-0 text-[9px]">{stage.label}</Badge>
-        <span className="font-mono text-[10px] text-muted-foreground">{node.duration}</span>
-      </div>
       {layout.out && (
         <Handle type="source" position={layout.out} className="!size-1.5 !border-0 !bg-transparent" />
       )}
@@ -105,8 +128,8 @@ function WayPointNode({ data }) {
 // Stable references (React Flow requirement).
 const nodeTypes = { wp: WayPointNode };
 
-const COL_W = 250;
-const ROW_H = 200;
+const COL_W = 660;
+const ROW_H = 380;
 const LAYOUT = {
   f1: { col: 0, row: 0, in: null, out: Position.Right },
   f2: { col: 1, row: 0, in: Position.Left, out: Position.Right },
@@ -123,21 +146,27 @@ const POSITIONS = NODE_ORDER.map((id) => ({
   y: LAYOUT[id].row * ROW_H,
 }));
 
-function RoadmapFlow({ track, onOpen }) {
+function RoadmapFlow({ track, onOpen, onViewModules }) {
   const suggested = suggestedNextId(track);
 
   const nodes = React.useMemo(
     () =>
-      POSITIONS.map(({ id, x, y }, index) => {
+      POSITIONS.map(({ id, x, y }) => {
         const isLocked = false; // Nodes are fully unlocked as requested
         return {
           id,
           type: "wp",
           position: { x, y },
-          data: { node: track.nodeMap[id], suggested: id === suggested, layout: LAYOUT[id], isLocked },
+          data: {
+            node: track.nodeMap[id],
+            suggested: id === suggested,
+            layout: LAYOUT[id],
+            isLocked,
+            onViewModules: () => onViewModules(id),
+          },
         };
       }),
-    [track, suggested]
+    [track, suggested, onViewModules]
   );
 
   const edges = React.useMemo(
@@ -149,8 +178,8 @@ function RoadmapFlow({ track, onOpen }) {
           source: a,
           target: b,
           animated: true, // Show moving flow arrows everywhere
-          style: { stroke: done ? "#0ea5a4" : "#9aa0b5", strokeWidth: 2 },
-          markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16, color: done ? "#0ea5a4" : "#9aa0b5" },
+          style: { stroke: done ? "#0ea5a4" : "#94a3b8", strokeWidth: 4 },
+          markerEnd: { type: MarkerType.ArrowClosed, width: 24, height: 24, color: done ? "#0ea5a4" : "#94a3b8" },
         };
       }),
     [track]
@@ -171,7 +200,7 @@ function RoadmapFlow({ track, onOpen }) {
             onOpen(n.id);
           }}
           fitView
-          fitViewOptions={{ padding: 0.2 }}
+          fitViewOptions={{ padding: 0.1 }}
           nodesDraggable={false}
           nodesConnectable={false}
           minZoom={0.4}
@@ -197,115 +226,272 @@ function RoadmapFlow({ track, onOpen }) {
   );
 }
 
-/* ─── Tree view — collapsible connected tree with vertical rails ─── */
+/* â”€â”€â”€ Tree view â€” Course-style accordion with module checkboxes â”€â”€â”€ */
 
-function TreeChild({ id, track, suggested, onOpen, color, isLast, isLocked }) {
+// Single node in the course accordion
+function NodeAccordion({ id, track, suggested, onOpen, trackId, color, expandedNodeId, setExpandedNodeId }) {
   const node = track.nodeMap[id];
+  const { updateModuleStatus, updateAllModulesStatus } = useApp();
   const isSuggested = id === suggested;
   const stage = stageInfo(node.stage);
+  const modules = node.modules || [];
+  const doneCount = modules.filter((m) => m.status === "completed").length;
+  const totalCount = modules.length;
+
+  // Auto-expand if flagged by "View Modules" from Flow
+  const [open, setOpen] = React.useState(false);
+  const containerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (expandedNodeId === id) {
+      setOpen(true);
+      setTimeout(() => {
+        containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Delay clearing the state so parent CourseSection also gets a chance to see it and expand.
+        setExpandedNodeId(null); 
+      }, 600);
+    }
+  }, [expandedNodeId, id, setExpandedNodeId]);
+
+  const handleModuleToggle = (moduleIndex, currentStatus) => {
+    const newStatus = currentStatus === "completed" ? "not_started" : "completed";
+    updateModuleStatus(trackId, id, moduleIndex, newStatus);
+  };
+
+  const [togglingAll, setTogglingAll] = React.useState(false);
+  const allModulesDone = totalCount > 0 && doneCount === totalCount;
+
+  const handleToggleAll = async (e) => {
+    e.stopPropagation();
+    if (togglingAll) return;
+    setTogglingAll(true);
+    const targetStatus = allModulesDone ? "not_started" : "completed";
+    
+    await updateAllModulesStatus(trackId, id, targetStatus);
+    
+    setTogglingAll(false);
+  };
+
+  const isTargetExpanded = expandedNodeId === id;
+
   return (
-    <div className="relative pl-8">
-      {/* Vertical connector line */}
-      {!isLast && (
-        <span
-          className="absolute left-[11px] top-1/2 h-[calc(100%+12px)] w-0.5"
-          style={{ background: `${color}30` }}
-        />
+    <div 
+      ref={containerRef} 
+      className={cn(
+        "rounded-xl border bg-card shadow-sm overflow-hidden transition-all duration-700",
+        isTargetExpanded && "ring-2 ring-primary shadow-[0_0_20px_rgba(91,95,239,0.2)]"
       )}
-      {/* Horizontal branch line to node */}
-      <span
-        className="absolute left-[11px] top-1/2 h-0.5 w-4 -translate-y-1/2"
-        style={{ background: `${color}50` }}
-      />
-      {/* Node dot on the rail */}
-      <span
-        className="absolute left-[7px] top-1/2 size-[10px] -translate-y-1/2 rounded-full ring-[3px] ring-card"
-        style={{
-          background:
-            node.status === "completed"
-              ? color
-              : node.status === "in_progress"
-                ? "#818cf8"
-                : "var(--border)",
-        }}
-      />
-      <button
-        onClick={() => {
-          if (isLocked) {
-            toast.error("Module Locked", { description: "Please complete the previous module to unlock this step." });
-            return;
+    >
+      {/* Parent node header row */}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => { if (totalCount > 0) setOpen(!open); }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            if (totalCount > 0) setOpen(!open);
           }
-          onOpen(id);
         }}
         className={cn(
-          "group flex w-full items-center gap-3 rounded-xl border bg-card p-3.5 text-left shadow-sm transition-all",
-          isLocked ? "opacity-60" : "hover:-translate-y-0.5 hover:shadow-md",
-          node.status === "in_progress" && "border-primary/60",
-          node.status === "completed" && "border-success/40",
-          isSuggested && node.status !== "in_progress" && "border-warning/60",
-          node.status === "not_started" && !isSuggested && "border-border"
+          "group w-full text-left outline-none border-l-4 transition-all hover:bg-accent/30 focus-visible:ring-2 focus-visible:ring-ring cursor-pointer",
+          node.status === "completed" && "border-l-success/70",
+          node.status === "in_progress" && "border-l-primary",
+          node.status === "not_started" && isSuggested && "border-l-warning",
+          node.status === "not_started" && !isSuggested && "border-l-border"
         )}
       >
-        <span
-          className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-full",
-            node.status === "completed" && "bg-success text-success-foreground",
-            node.status === "in_progress" && "bg-primary text-primary-foreground",
-            node.status === "not_started" && "bg-secondary"
-          )}
-        >
-          {node.status === "completed" && <Check className="size-4" />}
-          {node.status === "in_progress" && <span className="size-1.5 rounded-full bg-white" />}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold leading-tight">{node.title}</div>
-          <div className="mt-1.5 flex items-center gap-2">
-            <Badge variant={stage.variant} className="px-1.5 py-0 text-[9px]">{stage.label}</Badge>
-            <span className="font-mono text-[10px] text-muted-foreground">{node.duration}</span>
-          </div>
-          {node.syllabus && node.syllabus.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {node.syllabus.map((topic, idx) => (
-                <Badge key={idx} variant="outline" className="text-[10px] bg-card text-muted-foreground font-medium">
-                  {topic}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-        {isLocked ? (
-          <Lock className="shrink-0 size-4 text-muted-foreground" />
-        ) : isSuggested ? (
-          <Badge variant="warning" className="shrink-0 px-1.5 py-0 text-[9px]">SUGGESTED</Badge>
-        ) : (
-          <span className="shrink-0 font-mono text-[10px] font-bold" style={{ color: matchColor(node.match) }}>
-            {node.match}%
+        <div className="flex items-center gap-3 p-3.5">
+          {/* Status icon */}
+          <span
+            className={cn(
+              "flex size-8 shrink-0 items-center justify-center rounded-full",
+              node.status === "completed" && "bg-success text-success-foreground",
+              node.status === "in_progress" && "bg-primary text-primary-foreground",
+              node.status === "not_started" && "bg-secondary"
+            )}
+          >
+            {node.status === "completed" && <Check className="size-4" />}
+            {node.status === "in_progress" && <span className="size-1.5 rounded-full bg-white" />}
+            {node.status === "not_started" && <BookOpen className="size-3.5 text-muted-foreground" />}
           </span>
+
+          {/* Title + meta */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-semibold leading-tight">{node.title}</span>
+              {isSuggested && node.status !== "in_progress" && (
+                <Badge variant="warning" className="px-1.5 py-0 text-[9px]">SUGGESTED</Badge>
+              )}
+            </div>
+            <div className="mt-1 flex items-center gap-2 flex-wrap">
+              <Badge variant={stage.variant} className="px-1.5 py-0 text-[9px]">{stage.label}</Badge>
+              <span className="font-mono text-[10px] text-muted-foreground">{node.duration}</span>
+              {totalCount > 0 && (
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  {doneCount}/{totalCount} done
+                </span>
+              )}
+            </div>
+            {/* Module progress bar */}
+            {totalCount > 0 && (
+              <div className="mt-2 h-1 w-full rounded-full bg-secondary overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ background: color }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${totalCount ? (doneCount / totalCount) * 100 : 0}%` }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Right actions */}
+          <div className="flex shrink-0 items-center gap-1">
+            {/* AI Guide button */}
+            <button
+              onClick={(e) => { e.stopPropagation(); onOpen(id); }}
+              title="Open AI Guide"
+              className="flex size-7 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
+            >
+              <MessageSquare className="size-3.5" />
+            </button>
+            {/* Expand/collapse toggle */}
+            {totalCount > 0 && (
+              <div
+                className="flex size-7 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors group-hover:bg-accent"
+              >
+                <ChevronDown className={cn("size-4 transition-transform duration-200", open && "rotate-180")} />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Module checklist */}
+      <AnimatePresence initial={false}>
+        {open && totalCount > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-border/40 px-4 py-3 flex flex-col gap-1.5">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Modules to complete
+                </p>
+                <button
+                  onClick={handleToggleAll}
+                  disabled={togglingAll}
+                  className={cn(
+                    "group flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs font-semibold shadow-sm transition-all disabled:opacity-50",
+                    allModulesDone 
+                      ? "border-success/30 bg-success/10 text-success hover:bg-success/20"
+                      : "border-border bg-card text-foreground hover:border-primary/40 hover:bg-accent"
+                  )}
+                >
+                  <span className={cn(
+                    "flex size-4 shrink-0 items-center justify-center rounded border transition-all shadow-[inset_0_1px_1px_rgba(0,0,0,0.05)]",
+                    allModulesDone
+                      ? "border-success bg-success text-white"
+                      : "border-border bg-background group-hover:border-primary/50"
+                  )}>
+                    {allModulesDone && <Check className="size-3" />}
+                  </span>
+                  {togglingAll ? "Updating..." : allModulesDone ? "Uncheck all modules" : "Check all modules"}
+                </button>
+              </div>
+              
+              {modules.map((module, idx) => {
+                const isModuleDone = module.status === "completed";
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleModuleToggle(idx, module.status)}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-xl px-4 py-3 text-left text-sm transition-all w-full border border-transparent",
+                      isModuleDone
+                        ? "bg-success/5 text-success-foreground hover:bg-success/10 hover:border-success/20"
+                        : "hover:bg-accent/40 hover:border-border/50 hover:shadow-sm"
+                    )}
+                  >
+                    {/* Checkbox */}
+                    <span
+                      className={cn(
+                        "flex size-5 shrink-0 items-center justify-center rounded border-2 transition-all",
+                        isModuleDone
+                          ? "border-success bg-success text-white"
+                          : "border-border bg-background group-hover:border-primary/50"
+                      )}
+                    >
+                      {isModuleDone && <Check className="size-3" />}
+                    </span>
+                    <span className={cn("flex-1 text-[13px] font-medium transition-colors", isModuleDone ? "text-muted-foreground" : "text-foreground group-hover:text-primary")}>
+                      {module.title}
+                    </span>
+                    
+                    {/* Fixed-width Right Actions Container */}
+                    <div className="shrink-0 flex items-center gap-3 ml-2">
+                      {/* Dual Icons with more space */}
+                      <div className="flex items-center gap-2.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                        <PlayCircle className="size-4 text-red-500" />
+                        <FileText className="size-3.5 text-blue-500" />
+                      </div>
+                      {/* Static Action Indicator */}
+                      <div className={cn(
+                        "text-[10px] font-bold uppercase tracking-wider hidden sm:block w-[45px] text-right",
+                        isModuleDone ? "text-success" : "text-primary"
+                      )}>
+                        {isModuleDone ? "Review" : "Start"}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
         )}
-      </button>
+      </AnimatePresence>
     </div>
   );
 }
 
-function CollapsibleBranch({ branch, track, suggested, onOpen, index }) {
+// Branch section (Foundations / Core Build / Advanced Capstone)
+function CourseSection({ branch, track, suggested, onOpen, trackId, index, expandedNodeId, setExpandedNodeId }) {
   const [open, setOpen] = React.useState(branch.defaultOpen !== false);
-  const done = branch.children.filter((id) => track.nodeMap[id].status === "completed").length;
-  const total = branch.children.length;
-  const pct = Math.round((done / total) * 100);
+
+  // Auto-open this section if it contains the target node from Flow view
+  React.useEffect(() => {
+    if (expandedNodeId && branch.children.includes(expandedNodeId)) {
+      setOpen(true);
+    }
+  }, [expandedNodeId, branch.children]);
+
+  // Count completed nodes in this branch
+  const doneNodes = branch.children.filter((id) => track.nodeMap[id]?.status === "completed").length;
+  const totalNodes = branch.children.length;
+  const pct = Math.round((doneNodes / totalNodes) * 100);
+
+  const isSuggestedSection = branch.children.includes(suggested);
+  const isCompletedSection = doneNodes === totalNodes && totalNodes > 0;
 
   return (
-    <Card className="overflow-hidden">
-      {/* Header — clickable to expand/collapse */}
+    <Card 
+      className={cn(
+        "relative overflow-hidden transition-all duration-300",
+        isSuggestedSection && "border-primary/50 shadow-[0_0_30px_rgba(91,95,239,0.15)] ring-1 ring-primary/20",
+        isCompletedSection && "border-success/50 bg-success/5"
+      )}
+    >
+      {/* Section header */}
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center gap-3 p-4 text-left outline-none transition-colors hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <span
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-bold text-white"
-          style={{ background: branch.color }}
-        >
-          {index + 1}
-        </span>
         <div className="min-w-0 flex-1">
           <h3 className="font-display text-sm font-semibold">{branch.label}</h3>
           <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
@@ -318,8 +504,8 @@ function CollapsibleBranch({ branch, track, suggested, onOpen, index }) {
             />
           </div>
         </div>
-        <span className="font-mono text-[11px] text-muted-foreground">
-          {done}/{total}
+        <span className="font-mono text-[11px] text-muted-foreground shrink-0">
+          {doneNodes}/{totalNodes} steps
         </span>
         <ChevronDown
           className={cn(
@@ -329,7 +515,7 @@ function CollapsibleBranch({ branch, track, suggested, onOpen, index }) {
         />
       </button>
 
-      {/* Collapsible body with connected nodes */}
+      {/* Collapsible node list */}
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
@@ -339,28 +525,20 @@ function CollapsibleBranch({ branch, track, suggested, onOpen, index }) {
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <div className="relative flex flex-col gap-3 px-4 pb-4">
-              {/* Main vertical rail */}
-              <span
-                className="absolute bottom-6 left-[27px] top-0 w-0.5 rounded"
-                style={{ background: `${branch.color}30` }}
-              />
-              {branch.children.map((id, i) => {
-                const globalIndex = NODE_ORDER.indexOf(id);
-                const isLocked = false; // Unlocked
-                return (
-                  <TreeChild
-                    key={id}
-                    id={id}
-                    track={track}
-                    suggested={suggested}
-                    onOpen={onOpen}
-                    color={branch.color}
-                    isLast={i === branch.children.length - 1}
-                    isLocked={isLocked}
-                  />
-                );
-              })}
+            <div className="flex flex-col gap-2 px-4 pb-4 pt-1">
+              {branch.children.map((id) => (
+                <NodeAccordion
+                  key={id}
+                  id={id}
+                  track={track}
+                  suggested={suggested}
+                  onOpen={onOpen}
+                  trackId={trackId}
+                  color={branch.color}
+                  expandedNodeId={expandedNodeId}
+                  setExpandedNodeId={setExpandedNodeId}
+                />
+              ))}
             </div>
           </motion.div>
         )}
@@ -369,48 +547,61 @@ function CollapsibleBranch({ branch, track, suggested, onOpen, index }) {
   );
 }
 
-function RoadmapTree({ track, onOpen }) {
+function RoadmapTree({ track, onOpen, trackId, expandedNodeId, setExpandedNodeId }) {
   const suggested = suggestedNextId(track);
   return (
-    <div>
-      {/* staged-flow legend */}
-      <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-        <span className="font-mono uppercase tracking-wide">Staged path</span>
-        {TREE_BRANCHES.map((b, i) => (
-          <React.Fragment key={b.id}>
-            {i > 0 && <span className="text-border">→</span>}
-            <span className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full" style={{ background: b.color }} />
-              {b.label}
-            </span>
-          </React.Fragment>
-        ))}
-      </div>
-      {/* Collapsible branch cards stacked vertically for tree feel */}
-      <div className="flex flex-col gap-4">
-        {TREE_BRANCHES.map((b, i) => (
-          <CollapsibleBranch
-            key={b.id}
-            branch={b}
-            track={track}
-            suggested={suggested}
-            onOpen={onOpen}
-            index={i}
-          />
-        ))}
-      </div>
+    <div className="relative flex flex-col gap-8 ml-2 md:ml-4 pb-10">
+      {/* The Timeline Spine */}
+      <div className="absolute left-6 top-8 bottom-4 w-0.5 bg-border/50 hidden md:block" />
+      
+      {TREE_BRANCHES.map((b, i) => (
+        <div key={b.id} className="relative flex items-start gap-4 md:gap-6">
+          {/* Spine dot (only visible on md+ to align with spine) */}
+          <div className="hidden md:flex mt-6 size-12 shrink-0 items-center justify-center rounded-2xl border-4 border-background bg-card shadow-sm z-10 relative">
+             <span
+               className="flex size-full items-center justify-center rounded-xl font-mono text-lg font-bold text-white"
+               style={{ background: b.color }}
+             >
+               {i + 1}
+             </span>
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <CourseSection
+              branch={b}
+              track={track}
+              suggested={suggested}
+              onOpen={onOpen}
+              trackId={trackId}
+              index={i}
+              expandedNodeId={expandedNodeId}
+              setExpandedNodeId={setExpandedNodeId}
+            />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
-/* ─── Page ─── */
+/* â”€â”€â”€ Page â”€â”€â”€ */
 export default function Roadmap() {
   const navigate = useNavigate();
-  const { activeTrackId, tracks, openNode, roadmapView, setRoadmapView, generateAndLoadRoadmap, userProfile, simulatedHours } = useApp();
+  const {
+    activeTrackId, tracks, openNode, roadmapView, setRoadmapView,
+    generateAndLoadRoadmap, userProfile, simulatedHours,
+    expandedNodeId, setExpandedNodeId,
+  } = useApp();
   const baseTrack = tracks[activeTrackId] || Object.values(tracks)[0];
   const [generating, setGenerating] = React.useState(false);
 
   const [hasAttemptedGen, setHasAttemptedGen] = React.useState(false);
+
+  const handleViewModules = React.useCallback((nodeId) => {
+    setRoadmapView("tree");
+    setExpandedNodeId(nodeId);
+  }, [setRoadmapView, setExpandedNodeId]);
+
 
   const track = React.useMemo(() => {
     if (!baseTrack) return null;
@@ -449,68 +640,94 @@ export default function Roadmap() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
+    <div className="mx-auto max-w-7xl px-4 pt-6 pb-8 sm:px-6">
+      {/* Sticky Right-side Buttons */}
+      <div className="sticky top-[76px] z-20 flex justify-end pointer-events-none mb-[-44px]">
+        <div className="pointer-events-auto flex flex-wrap items-center gap-3">
+
+          <div className="flex items-center rounded-full border-2 border-border bg-card p-1 shadow-sm shrink-0">
+            {!Object.values(track.nodeMap).every(n => n.status === "completed") && (
+              <span className="hidden sm:inline-block text-sm font-bold text-foreground px-3">
+                Complete all modules to unlock
+              </span>
+            )}
+              <button
+                onClick={() => navigate("/final-assessment")}
+                disabled={!Object.values(track.nodeMap).every(n => n.status === "completed")}
+                className={cn(
+                  "rounded-full px-4 py-1.5 text-sm font-bold transition-all border",
+                  Object.values(track.nodeMap).every(n => n.status === "completed")
+                    ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90 shadow-md"
+                    : "bg-secondary text-secondary-foreground border-border/60 cursor-not-allowed opacity-90"
+                )}
+              >
+                Take Final Assessment
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1 rounded-full border-2 border-border bg-card p-1 shadow-sm shrink-0">
+              {[
+                { id: "flow", label: "Flow", icon: RouteIcon },
+                { id: "tree", label: "Tree", icon: GitFork },
+              ].map((v) => {
+                const Icon = v.icon;
+                const active = roadmapView === v.id;
+                return (
+                  <button
+                    key={v.id}
+                    onClick={() => setRoadmapView(v.id)}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-bold transition-all border",
+                      active
+                        ? "bg-primary text-primary-foreground border-primary shadow-md"
+                        : "bg-transparent text-foreground border-transparent hover:border-border hover:bg-accent"
+                    )}
+                  >
+                    <Icon className="size-4" /> {v.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Normal Header Text (scrolls normally) */}
+        <div className="mb-5 min-h-[48px] max-w-[60%] pt-1">
           <h1 className="font-display text-2xl font-bold tracking-tight">Your Learning Path</h1>
           <p className="text-sm text-muted-foreground">{track.label} Track</p>
         </div>
-        <div className="flex items-center gap-1 rounded-full border border-border bg-card p-1 shadow-sm">
-          {[
-            { id: "flow", label: "Flow", icon: RouteIcon },
-            { id: "tree", label: "Tree", icon: GitFork },
-          ].map((v) => {
-            const Icon = v.icon;
-            const active = roadmapView === v.id;
-            return (
-              <button
-                key={v.id}
-                onClick={() => setRoadmapView(v.id)}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
-                  active ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Icon className="size-3.5" /> {v.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
+        {roadmapView === "tree" && (
+          <div className="mt-2 mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+            <span className="font-mono uppercase tracking-wide">Staged path</span>
+            {TREE_BRANCHES.map((b, i) => (
+              <React.Fragment key={b.id}>
+                {i > 0 && <span className="text-border">→</span>}
+                <span className="flex items-center gap-1.5">
+                  <span className="size-2 rounded-full" style={{ background: b.color }} />
+                  {b.label}
+                </span>
+              </React.Fragment>
+            ))}
+          </div>
+        )}
       {roadmapView === "flow" ? (
-        <RoadmapFlow track={track} onOpen={openNode} />
+        <RoadmapFlow track={track} onOpen={openNode} onViewModules={handleViewModules} />
       ) : (
-        <RoadmapTree track={track} onOpen={openNode} />
+        <RoadmapTree
+          track={track}
+          onOpen={openNode}
+          trackId={activeTrackId}
+          expandedNodeId={expandedNodeId}
+          setExpandedNodeId={setExpandedNodeId}
+        />
       )}
 
-      <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground">
+      <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground pb-8">
         <Info className="mt-0.5 size-3.5 shrink-0" />
         Explore any module in any order! The amber "Suggested"
         badge points to your highest-impact next move.
       </p>
-
-      {/* Capstone Assessment Button - Floating */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center w-full max-w-sm px-4 pointer-events-none">
-        <Button
-          size="lg"
-          onClick={() => navigate("/final-assessment")}
-          disabled={!Object.values(track.nodeMap).every(n => n.status === "completed")}
-          className={cn(
-            "w-full font-semibold shadow-2xl transition-all rounded-full pointer-events-auto h-12",
-            Object.values(track.nodeMap).every(n => n.status === "completed") 
-              ? "bg-gradient-to-r from-primary to-indigo-500 hover:from-primary/90 hover:to-indigo-500/90 hover:-translate-y-1" 
-              : "opacity-90"
-          )}
-        >
-          Take Final Assessment (Capstone)
-        </Button>
-        {!Object.values(track.nodeMap).every(n => n.status === "completed") && (
-          <div className="mt-2.5 rounded-full bg-background/95 backdrop-blur-md px-4 py-1.5 shadow-sm border border-border/50 text-[11px] font-medium text-muted-foreground pointer-events-auto">
-            Complete all modules to unlock
-          </div>
-        )}
-      </div>
     </div>
   );
 }
+

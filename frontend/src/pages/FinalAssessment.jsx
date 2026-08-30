@@ -48,9 +48,15 @@ export default function FinalAssessment() {
       try {
         const skillLevel = userProfile?.skillLevel || 'beginner';
         const res = await api.getQuiz(quizRole, skillLevel, 'final');
-        if (!ignore && res.success) {
-          setQuestions(res.questions);
-          setAnswers(Array(res.questions.length).fill(null));
+        if (!ignore) {
+          if (res.success) {
+            setQuestions(res.questions);
+            setAnswers(Array(res.questions.length).fill(null));
+          } else {
+            const fallback = QUIZ_QUESTIONS[quizRole] || QUIZ_QUESTIONS['ml'];
+            setQuestions(fallback);
+            setAnswers(Array(fallback.length).fill(null));
+          }
         }
       } catch (err) {
         if (!ignore) {
@@ -123,6 +129,86 @@ export default function FinalAssessment() {
       ? { label: "Pass! You are Job-Ready", tone: "text-success" }
       : { label: "Fail — More Preparation Needed", tone: "text-destructive" };
 
+    if (showAnalysis) {
+      return (
+        <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+                  Detailed Test Analysis
+                </h1>
+                <p className="mt-2 text-muted-foreground">
+                  Review your answers and learn from your mistakes.
+                </p>
+              </div>
+              <Button variant="outline" onClick={() => setShowAnalysis(false)}>
+                <ArrowLeft className="mr-2 size-4" /> Back to results
+              </Button>
+            </div>
+
+            {!result.results ? (
+              <div className="mt-8 rounded-xl border p-6 text-center text-sm text-muted-foreground">
+                Detailed analysis is not available for this test session. Please retake the test.
+              </div>
+            ) : (
+              <div className="mt-8 space-y-4">
+                {result.results.map((res, i) => (
+                <Card key={i} className={cn("overflow-hidden border-l-4", res.is_correct ? "border-l-success" : "border-l-destructive")}>
+                  <CardContent className="p-5">
+                    <p className="font-medium text-sm mb-4">Q{i + 1}: {res.q}</p>
+                    <div className="space-y-2.5">
+                      {res.options.map((opt, optIdx) => {
+                        const isCorrectOpt = res.correct_answer === optIdx;
+                        const isUserSelected = res.user_answer === optIdx;
+                        
+                        let optionClass = "border-border bg-card text-muted-foreground";
+                        let Icon = null;
+                        
+                        if (isCorrectOpt) {
+                          optionClass = "border-success bg-success/10 text-foreground ring-1 ring-success/30 font-medium";
+                          Icon = Check;
+                        } else if (isUserSelected && !isCorrectOpt) {
+                          optionClass = "border-destructive bg-destructive/10 text-foreground ring-1 ring-destructive/30";
+                          Icon = X;
+                        }
+
+                        return (
+                          <div key={optIdx} className={cn("flex w-full items-center gap-3 rounded-xl border p-3 text-sm", optionClass)}>
+                            <span className={cn(
+                              "flex size-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-semibold",
+                              isCorrectOpt ? "border-success bg-success text-success-foreground" :
+                              isUserSelected ? "border-destructive bg-destructive text-destructive-foreground" : "border-border"
+                            )}>
+                              {Icon ? <Icon className="size-3" /> : String.fromCharCode(65 + optIdx)}
+                            </span>
+                            <span className={cn((isCorrectOpt || isUserSelected) && "font-medium")}>{opt}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+                ))}
+              </div>
+            )}
+            <div className="mt-8 flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setShowAnalysis(false)}>
+                Back to results
+              </Button>
+              <Button onClick={() => navigate("/dashboard")}>
+                Return to Dashboard <ArrowRight className="ml-2 size-4" />
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      );
+    }
+
     return (
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <motion.div
@@ -190,54 +276,7 @@ export default function FinalAssessment() {
           </Button>
         </div>
 
-        {showAnalysis && result.results && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            className="mt-8 space-y-4 text-left"
-          >
-            <h2 className="font-display text-lg font-semibold">Test Analysis</h2>
-            <div className="space-y-4">
-              {result.results.map((res, i) => (
-                <Card key={i} className={cn("overflow-hidden border-l-4", res.is_correct ? "border-l-success" : "border-l-destructive")}>
-                  <CardContent className="p-5">
-                    <p className="font-medium text-sm mb-4">Q{i + 1}: {res.q}</p>
-                    <div className="space-y-2.5">
-                      {res.options.map((opt, optIdx) => {
-                        const isCorrectOpt = res.correct_answer === optIdx;
-                        const isUserSelected = res.user_answer === optIdx;
-                        
-                        let optionClass = "border-border bg-card text-muted-foreground";
-                        let Icon = null;
-                        
-                        if (isCorrectOpt) {
-                          optionClass = "border-success bg-success/10 text-foreground ring-1 ring-success/30 font-medium";
-                          Icon = Check;
-                        } else if (isUserSelected && !isCorrectOpt) {
-                          optionClass = "border-destructive bg-destructive/10 text-foreground ring-1 ring-destructive/30";
-                          Icon = X;
-                        }
 
-                        return (
-                          <div key={optIdx} className={cn("flex w-full items-center gap-3 rounded-xl border p-3 text-sm", optionClass)}>
-                            <span className={cn(
-                              "flex size-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-semibold",
-                              isCorrectOpt ? "border-success bg-success text-success-foreground" :
-                              isUserSelected ? "border-destructive bg-destructive text-destructive-foreground" : "border-border"
-                            )}>
-                              {Icon ? <Icon className="size-3" /> : String.fromCharCode(65 + optIdx)}
-                            </span>
-                            <span className={cn((isCorrectOpt || isUserSelected) && "font-medium")}>{opt}</span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </motion.div>
-        )}
       </div>
     );
   }

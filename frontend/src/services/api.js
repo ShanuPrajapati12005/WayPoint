@@ -70,8 +70,8 @@ function persistToken(res) {
 const real = {
   login: (email, password) =>
     http('/api/auth/login', { method: 'POST', body: { email, password } }).then(persistToken),
-  signup: (email, password) =>
-    http('/api/auth/signup', { method: 'POST', body: { email, password } }).then(persistToken),
+  signup: (email, password, name) =>
+    http('/api/auth/signup', { method: 'POST', body: { email, password, name } }).then(persistToken),
   googleAuth: (email, name) =>
     http('/api/auth/google', { method: 'POST', body: { email, name } }).then(persistToken),
   submitOnboarding: (profileData) =>
@@ -87,6 +87,10 @@ const real = {
     http('/api/roadmap/generate', { method: 'POST', body: { target_role: roleId } }),
   updateNodeStatus: (trackId, nodeId, status) =>
     http(`/api/roadmap/${trackId}/nodes/${nodeId}`, { method: 'PATCH', body: { status } }),
+  updateModuleStatus: (trackId, nodeId, moduleIndex, status) =>
+    http(`/api/roadmap/${trackId}/nodes/${nodeId}/modules`, { method: 'PATCH', body: { module_index: moduleIndex, status } }),
+  updateAllModulesStatus: (trackId, nodeId, status) =>
+    http(`/api/roadmap/${trackId}/nodes/${nodeId}/modules/all`, { method: 'PATCH', body: { status } }),
   chatWithNode: (trackId, nodeId, query) =>
     http(`/api/roadmap/${trackId}/nodes/${nodeId}/chat`, { method: 'POST', body: { query } }),
   adaptRoadmap: (trackId, nodeId, feedback) =>
@@ -97,6 +101,7 @@ const real = {
     http('/api/chat/general', { method: 'POST', body: { messages } }),
   getUserProfile: () => http('/api/user/profile'),
 };
+
 
 // The one export the app consumes. Mock has been completely removed to enforce separation of concerns.
 export const api = real;

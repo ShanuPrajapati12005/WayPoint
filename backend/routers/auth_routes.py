@@ -13,6 +13,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 class AuthRequest(BaseModel):
     email: str
     password: str
+    name: str = None
 
 
 @router.post("/signup")
@@ -40,6 +41,7 @@ def signup(req: AuthRequest, db: Session = Depends(get_db)):
     user = User(
         email=req.email,
         password_hash=hash_password(req.password),
+        name=req.name,
     )
     print("Adding user to db")
     db.add(user)

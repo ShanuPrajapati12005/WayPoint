@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Compass,
@@ -60,9 +60,10 @@ const PANELS = {
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { setUserProfile } = useApp();
 
-  const [isLogin, setIsLogin] = React.useState(false);
+  const [isLogin, setIsLogin] = React.useState(searchParams.get("mode") === "login");
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -89,11 +90,10 @@ export default function Auth() {
     try {
       if (isLogin) {
         await api.login(email, password);
-        navigate("/dashboard");
+        window.location.href = "/dashboard";
       } else {
-        await api.signup(email, password);
-        setUserProfile((p) => ({ ...p, name: name.trim(), email }));
-        navigate("/onboarding");
+        await api.signup(email, password, name.trim());
+        window.location.href = "/onboarding";
       }
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
@@ -200,9 +200,9 @@ export default function Auth() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     onBlur={() => markTouched("name")}
-                    aria-invalid={touched.name && !nameValid}
+                    aria-invalid={touched.name && name.length > 0 && !nameValid}
                   />
-                  {touched.name && !nameValid && (
+                  {touched.name && name.length > 0 && !nameValid && (
                     <p className="text-xs text-destructive">Please enter your name.</p>
                   )}
                 </motion.div>
@@ -218,9 +218,9 @@ export default function Auth() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => markTouched("email")}
-                aria-invalid={touched.email && !emailValid}
+                aria-invalid={touched.email && email.length > 0 && !emailValid}
               />
-              {touched.email && !emailValid && (
+              {touched.email && email.length > 0 && !emailValid && (
                 <p className="text-xs text-destructive">Enter a valid email address.</p>
               )}
             </div>
@@ -242,7 +242,7 @@ export default function Auth() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onBlur={() => markTouched("password")}
-                  aria-invalid={touched.password && !pwValid}
+                  aria-invalid={touched.password && password.length > 0 && !pwValid}
                   className="pr-10"
                 />
                 <button
@@ -254,7 +254,7 @@ export default function Auth() {
                   {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
-              {touched.password && !pwValid && (
+              {touched.password && password.length > 0 && !pwValid && (
                 <p className="text-xs text-destructive">At least 6 characters.</p>
               )}
             </div>

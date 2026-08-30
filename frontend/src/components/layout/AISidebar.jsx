@@ -13,6 +13,7 @@ import {
   RotateCcw,
   Lock,
   Activity,
+  Layers,
 } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { stageInfo, NODE_ORDER } from "@/data/tracks";
@@ -74,6 +75,8 @@ export default function AISidebar() {
     giveFeedback,
     updateNodeStatus,
     isAdapting,
+    setRoadmapView,
+    setExpandedNodeId,
   } = useApp();
   const [query, setQuery] = React.useState("");
   const [messages, setMessages] = React.useState([]);
@@ -232,6 +235,18 @@ export default function AISidebar() {
                       text={reasoning?.time || `Estimated ${node.duration} at your current pace.`}
                     />
                   </div>
+
+                  {/* View Modules button */}
+                  <Button
+                    className="w-full mb-3 rounded-xl bg-gradient-to-r from-primary to-indigo-600 py-6 text-[16px] font-bold tracking-wide text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl dark:from-primary dark:to-indigo-500"
+                    onClick={() => {
+                      closeSidebar();
+                      setRoadmapView("tree");
+                      setExpandedNodeId(selectedNodeId);
+                    }}
+                  >
+                    <Layers className="mr-2 size-5" /> View Modules
+                  </Button>
 
                   {/* Live status action — updates readiness, radar & heatmap everywhere */}
                   {node.status === "completed" ? (

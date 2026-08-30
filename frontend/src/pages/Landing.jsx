@@ -131,7 +131,7 @@ function LandingHeader() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate("/auth")}
+          onClick={() => navigate("/auth?mode=login")}
           className="hidden sm:inline-flex"
         >
           Log in

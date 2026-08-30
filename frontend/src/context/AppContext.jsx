@@ -18,6 +18,48 @@ import { FEEDBACK_MESSAGES } from '../data/tracks';
 
 const AppContext = createContext(null);
 
+// ─── Migration helper ───
+// Converts old `syllabus: ["string"]` to new `modules: [{title, status}]`
+// Runs silently on load — zero data loss, backward-compatible.
+function migrateNodeMap(nodeMap) {
+  if (!nodeMap) return {};
+  const migrated = {};
+  for (const [key, node] of Object.entries(nodeMap)) {
+    if (node.syllabus && !node.modules) {
+      migrated[key] = {
+        ...node,
+        modules: node.syllabus.map((title) => ({ title, status: node.status === 'completed' ? 'completed' : 'not_started' })),
+      };
+      delete migrated[key].syllabus;
+    } else if (!node.modules || node.modules.length === 0) {
+      // Fallback: generate default modules if missing completely
+      const defaultStatus = node.status === 'completed' ? 'completed' : 'not_started';
+      migrated[key] = {
+        ...node,
+        modules: [
+          { title: `${node.title || 'Topic'} - Fundamentals`, status: defaultStatus },
+          { title: `${node.title || 'Topic'} - Practice`, status: defaultStatus },
+          { title: `${node.title || 'Topic'} - Applied`, status: defaultStatus }
+        ]
+      };
+    } else {
+      let finalModules = node.modules;
+      if (!Array.isArray(finalModules)) {
+        // If LLM returned an object/dict instead of an array, extract values
+        finalModules = typeof finalModules === 'object' ? Object.values(finalModules) : [];
+      }
+      
+      // Enforce: if parent is completed, all modules must be completed
+      if (node.status === 'completed') {
+        finalModules = finalModules.map(m => ({ ...m, status: 'completed' }));
+      }
+      
+      migrated[key] = { ...node, modules: finalModules };
+    }
+  }
+  return migrated;
+}
+
 export function AppProvider({ children }) {
   // ─── Theme (shadcn .dark class, light-first) ───
   const [theme, setTheme] = useState(() => {
@@ -56,7 +98,17 @@ export function AppProvider({ children }) {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('waypoint-strict-cache');
       if (stored) {
-        try { return JSON.parse(stored); } catch (e) {}
+        try {
+          const parsed = JSON.parse(stored);
+          const migratedTracks = {};
+          for (const [key, track] of Object.entries(parsed)) {
+            migratedTracks[key] = {
+              ...track,
+              nodeMap: migrateNodeMap(track.nodeMap)
+            };
+          }
+          return migratedTracks;
+        } catch (e) {}
       }
     }
     return {};
@@ -99,13 +151,18 @@ export function AppProvider({ children }) {
         if (tracksRes && tracksRes.success) {
           setTracks((prev) => {
             const newTracks = {};
-            // Only keep tracks that exist in the backend response (fixes caching issue)
             for (const key of Object.keys(tracksRes.data)) {
+              const incoming = tracksRes.data[key];
+              // Apply migration on incoming data
+              const migratedNodeMap = migrateNodeMap(incoming.nodeMap);
               if (!prev[key]) {
-                newTracks[key] = tracksRes.data[key];
+                newTracks[key] = { ...incoming, nodeMap: migratedNodeMap };
               } else {
-                // BUG FIX: Spread prev first, then backend data, so backend overrides local optimistic state
-                newTracks[key] = { ...prev[key], ...tracksRes.data[key], nodeMap: { ...(prev[key].nodeMap || {}), ...tracksRes.data[key].nodeMap } };
+                newTracks[key] = {
+                  ...prev[key],
+                  ...incoming,
+                  nodeMap: { ...(prev[key].nodeMap || {}), ...migratedNodeMap }
+                };
               }
             }
             return newTracks;
@@ -131,8 +188,10 @@ export function AppProvider({ children }) {
     try {
       const res = await api.generateRoadmap(roleId);
       if (res.success && res.roadmap) {
-        setTracks((prev) => ({ ...prev, [roleId]: res.roadmap }));
-        return res.roadmap;
+        const migratedNodeMap = migrateNodeMap(res.roadmap.nodeMap);
+        const roadmap = { ...res.roadmap, nodeMap: migratedNodeMap };
+        setTracks((prev) => ({ ...prev, [roleId]: roadmap }));
+        return roadmap;
       }
     } catch (err) {
       console.error('Failed to generate roadmap', err);
@@ -151,11 +210,16 @@ export function AppProvider({ children }) {
         setTracks((prev) => {
           const newTracks = {};
           for (const key of Object.keys(res.data)) {
+            const incoming = res.data[key];
+            const migratedNodeMap = migrateNodeMap(incoming.nodeMap);
             if (!prev[key]) {
-              newTracks[key] = res.data[key];
+              newTracks[key] = { ...incoming, nodeMap: migratedNodeMap };
             } else {
-              // BUG FIX: Spread prev first, then backend data, so backend overrides local optimistic state
-              newTracks[key] = { ...prev[key], ...res.data[key], nodeMap: { ...(prev[key].nodeMap || {}), ...res.data[key].nodeMap } };
+              newTracks[key] = {
+                ...prev[key],
+                ...incoming,
+                nodeMap: { ...(prev[key].nodeMap || {}), ...migratedNodeMap }
+              };
             }
           }
           return newTracks;
@@ -223,6 +287,9 @@ export function AppProvider({ children }) {
   const [simulatedHours, setSimulatedHours] = useState(null);
   const [adaptationPopupOpen, setAdaptationPopupOpen] = useState(false);
   const [isAdapting, setIsAdapting] = useState(false);
+
+  // Track which node to auto-expand in Tree mode (set by "View Modules" button in Flow)
+  const [expandedNodeId, setExpandedNodeId] = useState(null);
 
   // ─── Command Palette (⌘K) ───
   const [commandOpen, setCommandOpen] = useState(false);
@@ -304,26 +371,43 @@ export function AppProvider({ children }) {
     setCommandOpen(false);
     setDemoMode(false);
     setUserProfile((p) => ({ ...p, isOnboarded: false }));
-    sonnerToast('Logged out', {
-      description: 'Your progress is saved — log back in any time.',
-    });
+    window.location.href = "/auth?mode=login";
   }, []);
 
   // ─── Node Status Update ───
-  const updateNodeStatus = useCallback((trackId, nodeId, newStatus) => {    // Optimistic UI update
+  const updateNodeStatus = useCallback((trackId, nodeId, newStatus) => {
+    // Guard: if trying to mark complete, ensure all modules are done
+    if (newStatus === 'completed') {
+      const node = tracks[trackId]?.nodeMap?.[nodeId];
+      const modules = node?.modules || [];
+      if (modules.length > 0) {
+        const allDone = modules.every((m) => m.status === 'completed');
+        if (!allDone) {
+          // Don't complete — redirect to tree view to finish modules
+          sonnerToast.error('Complete all modules first', {
+            description: 'Open Tree view to check off pending topics.',
+          });
+          setRoadmapView('tree');
+          setExpandedNodeId(nodeId);
+          return;
+        }
+      }
+    }
+
+    // Optimistic UI update
     setTracks((prev) => {
       const updated = { ...prev };
       const track = { ...updated[trackId] };
       const nodeMap = { ...track.nodeMap };
       const oldStatus = nodeMap[nodeId]?.status;
-      
+
       nodeMap[nodeId] = { ...nodeMap[nodeId], status: newStatus };
       track.nodeMap = nodeMap;
 
       // Locally compute the skill bump to ensure instant UI update
       if (newStatus === 'completed' && oldStatus !== 'completed') {
-        const remaining = Object.values(nodeMap).filter(n => n.status !== 'completed').length;
-        const newSkillData = track.skillData.map(skill => {
+        const remaining = Object.values(nodeMap).filter((n) => n.status !== 'completed').length;
+        const newSkillData = track.skillData.map((skill) => {
           const current = skill.current || 0;
           const target = skill.target || 100;
           if (current < target) {
@@ -346,14 +430,106 @@ export function AppProvider({ children }) {
 
     // Async API call
     api.updateNodeStatus(trackId, nodeId, newStatus)
-      .then((res) => {
-        // We now rely on the local computation for immediate feedback.
-        // We only override if the backend explicitly provides a higher/different successful state
-        // but to prevent the known backend stale-data bug, we trust the optimistic update.
-      })
+      .then(() => { /* optimistic update already applied */ })
       .catch((err) => {
         console.error('Failed to update node status:', err);
       });
+  }, [tracks, setRoadmapView]);
+
+  // ─── Module Status Update ───
+  // Updates a single module's completion state and derives parent status locally.
+  const updateModuleStatus = useCallback((trackId, nodeId, moduleIndex, newStatus) => {
+    setTracks((prev) => {
+      const track = prev[trackId];
+      if (!track) return prev;
+      const node = track.nodeMap[nodeId];
+      if (!node) return prev;
+
+      const modules = [...(node.modules || [])];
+      modules[moduleIndex] = { ...modules[moduleIndex], status: newStatus };
+
+      // Derive parent status from all modules
+      const allDone = modules.every((m) => m.status === 'completed');
+      const anyDone = modules.some((m) => m.status === 'completed');
+      const parentStatus = allDone ? 'completed' : anyDone ? 'in_progress' : 'not_started';
+
+      const oldParentStatus = node.status;
+      const newNodeMap = {
+        ...track.nodeMap,
+        [nodeId]: { ...node, modules, status: parentStatus },
+      };
+
+      let skillData = track.skillData;
+      // Trigger skill bump when parent becomes completed
+      if (parentStatus === 'completed' && oldParentStatus !== 'completed') {
+        const remaining = Object.values(newNodeMap).filter((n) => n.status !== 'completed').length;
+        skillData = skillData.map((skill) => {
+          const current = skill.current || 0;
+          const target = skill.target || 100;
+          if (current < target) {
+            if (remaining === 0) return { ...skill, current: target };
+            const gap = target - current;
+            const increment = Math.max(2, Math.floor(gap / (remaining + 1)));
+            return { ...skill, current: Math.min(target, current + increment) };
+          }
+          return skill;
+        });
+      }
+
+      return {
+        ...prev,
+        [trackId]: { ...track, nodeMap: newNodeMap, skillData },
+      };
+    });
+
+    // Async API call - Return the promise so caller can await it
+    return api.updateModuleStatus(trackId, nodeId, moduleIndex, newStatus)
+      .catch((err) => {
+        console.error('Failed to update module status on backend', err);
+      });
+  }, []);
+
+  const updateAllModulesStatus = useCallback((trackId, nodeId, newStatus) => {
+    setTracks((prev) => {
+      const track = prev[trackId];
+      if (!track) return prev;
+      const node = track.nodeMap[nodeId];
+      if (!node) return prev;
+
+      const modules = (node.modules || []).map(m => ({ ...m, status: newStatus }));
+      const parentStatus = newStatus;
+      const oldParentStatus = node.status;
+
+      const newNodeMap = {
+        ...track.nodeMap,
+        [nodeId]: { ...node, modules, status: parentStatus },
+      };
+
+      let skillData = track.skillData;
+      if (parentStatus === 'completed' && oldParentStatus !== 'completed') {
+        const remaining = Object.values(newNodeMap).filter((n) => n.status !== 'completed').length;
+        skillData = skillData.map((skill) => {
+          const current = skill.current || 0;
+          const target = skill.target || 100;
+          if (current < target) {
+            if (remaining === 0) return { ...skill, current: target };
+            const gap = target - current;
+            const increment = Math.max(2, Math.floor(gap / (remaining + 1)));
+            return { ...skill, current: Math.min(target, current + increment) };
+          }
+          return skill;
+        });
+      }
+
+      return {
+        ...prev,
+        [trackId]: { ...track, nodeMap: newNodeMap, skillData },
+      };
+    });
+
+    return api.updateAllModulesStatus(trackId, nodeId, newStatus).catch((err) => {
+      console.error('Failed to update all modules status on backend', err);
+    });
   }, []);
 
   const value = {
@@ -393,6 +569,8 @@ export function AppProvider({ children }) {
     setRoadmapView,
     simulatedHours,
     setSimulatedHours,
+    expandedNodeId,
+    setExpandedNodeId,
 
     // Command palette
     commandOpen,
@@ -405,8 +583,10 @@ export function AppProvider({ children }) {
     giveFeedback,
     isAdapting,
 
-    // Node updates
+    // Node + module updates
     updateNodeStatus,
+    updateModuleStatus,
+    updateAllModulesStatus,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

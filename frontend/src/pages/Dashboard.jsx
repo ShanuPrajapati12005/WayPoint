@@ -92,51 +92,7 @@ function MilestoneTimeline({ track }) {
   );
 }
 
-function InsightsCard() {
-  const [idx, setIdx] = React.useState(0);
-  const insight = INSIGHTS[idx];
-  const prev = () => setIdx((i) => (i - 1 + INSIGHTS.length) % INSIGHTS.length);
-  const next = () => setIdx((i) => (i + 1) % INSIGHTS.length);
-  return (
-    <Card className="border-primary/25 bg-gradient-to-br from-primary/[0.06] to-card p-4">
-      <div className="mb-2.5 flex items-center justify-between">
-        <span className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-primary">
-          <Sparkles className="size-3.5" /> AI insight
-        </span>
-        <div className="flex items-center gap-2.5">
-          <div className="flex gap-1">
-            {INSIGHTS.map((_, i) => (
-              <span key={i} className={"size-1.5 rounded-full " + (i === idx ? "bg-primary" : "bg-border")} />
-            ))}
-          </div>
-          <div className="flex text-muted-foreground">
-            <button onClick={prev} aria-label="Previous insight" className="transition-colors hover:text-foreground">
-              <ChevronLeft className="size-4" />
-            </button>
-            <button onClick={next} aria-label="Next insight" className="transition-colors hover:text-foreground">
-              <ChevronRight className="size-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={idx}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          className="flex items-start gap-2.5"
-        >
-          <span className="text-xl leading-none">{insight.icon}</span>
-          <p className="text-sm leading-relaxed text-foreground">{insight.text}</p>
-        </motion.div>
-      </AnimatePresence>
-      <button className="mt-3 w-full rounded-full border border-primary/30 bg-primary/5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10">
-        {insight.action}
-      </button>
-    </Card>
-  );
-}
+
 
 /** Alternate skill-gap view — horizontal bars sorted largest-gap-first,
     with a marker at each target (toggle counterpart to the radar). */
@@ -421,9 +377,8 @@ export default function Dashboard() {
       </Card>
 
       {/* Stat row */}
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatTile icon={Flame} value={userProfile.stats?.streak?.toString() || "0"} label="Day streak" hint="Longest yet" tone="warning" />
-        <StatTile icon={Zap} value={userProfile.stats?.xp?.toLocaleString() || "0"} label="XP earned" tone="success" />
         <StatTile icon={TrendingUp} value={`${completion}%`} label="Path complete" tone="primary" />
         <StatTile
           icon={Clock}
@@ -472,7 +427,6 @@ export default function Dashboard() {
 
         <div className="flex flex-col gap-5">
           <LearnerProfileCard userProfile={userProfile} />
-          <InsightsCard />
           <NextActionsCard track={track} suggestedNode={suggestedNode} navigate={navigate} />
         </div>
       </div>

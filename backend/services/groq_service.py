@@ -94,13 +94,18 @@ ROLE_LABELS = {
 
 
 # ─── Pydantic Schemas for validation ───
+class ModuleSchema(BaseModel):
+    title: str
+    status: str = "not_started"  # "not_started" | "completed"
+
+
 class NodeSchema(BaseModel):
     title: str
     status: str = "not_started"
     match: int = Field(ge=0, le=100)
     duration: str
     stage: Literal["learn", "build", "prove"]
-    syllabus: List[str]
+    modules: List[ModuleSchema] = []  # replaces syllabus — tracks per-topic completion
     resources: List[str] = []
 
 
@@ -185,14 +190,14 @@ You MUST return ONLY a raw JSON object (no markdown, no explanation, no intro) w
 {{
   "label": "{label}",
   "nodeMap": {{
-    "f1": {{ "title": "Step name", "status": "not_started", "match": 85, "duration": "2 wks", "stage": "learn", "syllabus": ["Variables & data types", "Control flow & loops", "Functions & scope"], "resources": ["YouTube: FreeCodeCamp Full Course"] }},
-    "f2": {{ "title": "Step name", "status": "not_started", "match": 88, "duration": "1.5 wks", "stage": "learn", "syllabus": ["Core concept A for this module", "Core concept B for this module", "Hands-on practice exercises"], "resources": ["YouTube: Traversy Media"] }},
-    "f3": {{ "title": "Step name", "status": "not_started", "match": 82, "duration": "1 wk", "stage": "learn", "syllabus": ["Specific sub-skill 1", "Specific sub-skill 2", "Real-world application"], "resources": ["Coursera: Relevant Course"] }},
-    "d1": {{ "title": "Step name", "status": "not_started", "match": 90, "duration": "2 wks", "stage": "build", "syllabus": ["Building feature X", "Integrating with Y", "Testing & debugging"], "resources": ["YouTube: Tech With Tim"] }},
-    "d2": {{ "title": "Step name", "status": "not_started", "match": 86, "duration": "1.5 wks", "stage": "build", "syllabus": ["Architecture patterns", "Data modeling", "API design"], "resources": ["YouTube: Fireship"] }},
-    "m1": {{ "title": "Step name", "status": "not_started", "match": 84, "duration": "2 wks", "stage": "build", "syllabus": ["Advanced technique 1", "Performance optimization", "Production best practices"], "resources": ["YouTube: The Net Ninja"] }},
-    "m2": {{ "title": "Step name", "status": "not_started", "match": 80, "duration": "1 wk", "stage": "prove", "syllabus": ["Portfolio project planning", "Code review practices", "Documentation"], "resources": ["GitHub: Awesome Lists"] }},
-    "m3": {{ "title": "Step name", "status": "not_started", "match": 95, "duration": "2 wks", "stage": "prove", "syllabus": ["End-to-end capstone project", "Deployment & CI/CD", "Interview preparation"], "resources": ["YouTube: Clever Programmer"] }}
+    "f1": {{ "title": "Step name", "status": "not_started", "match": 85, "duration": "2 wks", "stage": "learn", "modules": [{{"title": "Variables & data types", "status": "not_started"}}, {{"title": "Control flow & loops", "status": "not_started"}}, {{"title": "Functions & scope", "status": "not_started"}}], "resources": ["YouTube: FreeCodeCamp Full Course"] }},
+    "f2": {{ "title": "Step name", "status": "not_started", "match": 88, "duration": "1.5 wks", "stage": "learn", "modules": [{{"title": "Core concept A for this module", "status": "not_started"}}, {{"title": "Core concept B for this module", "status": "not_started"}}, {{"title": "Hands-on practice exercises", "status": "not_started"}}], "resources": ["YouTube: Traversy Media"] }},
+    "f3": {{ "title": "Step name", "status": "not_started", "match": 82, "duration": "1 wk", "stage": "learn", "modules": [{{"title": "Specific sub-skill 1", "status": "not_started"}}, {{"title": "Specific sub-skill 2", "status": "not_started"}}, {{"title": "Real-world application", "status": "not_started"}}], "resources": ["Coursera: Relevant Course"] }},
+    "d1": {{ "title": "Step name", "status": "not_started", "match": 90, "duration": "2 wks", "stage": "build", "modules": [{{"title": "Building feature X", "status": "not_started"}}, {{"title": "Integrating with Y", "status": "not_started"}}, {{"title": "Testing & debugging", "status": "not_started"}}], "resources": ["YouTube: Tech With Tim"] }},
+    "d2": {{ "title": "Step name", "status": "not_started", "match": 86, "duration": "1.5 wks", "stage": "build", "modules": [{{"title": "Architecture patterns", "status": "not_started"}}, {{"title": "Data modeling", "status": "not_started"}}, {{"title": "API design", "status": "not_started"}}], "resources": ["YouTube: Fireship"] }},
+    "m1": {{ "title": "Step name", "status": "not_started", "match": 84, "duration": "2 wks", "stage": "build", "modules": [{{"title": "Advanced technique 1", "status": "not_started"}}, {{"title": "Performance optimization", "status": "not_started"}}, {{"title": "Production best practices", "status": "not_started"}}], "resources": ["YouTube: The Net Ninja"] }},
+    "m2": {{ "title": "Step name", "status": "not_started", "match": 80, "duration": "1 wk", "stage": "prove", "modules": [{{"title": "Portfolio project planning", "status": "not_started"}}, {{"title": "Code review practices", "status": "not_started"}}, {{"title": "Documentation", "status": "not_started"}}], "resources": ["GitHub: Awesome Lists"] }},
+    "m3": {{ "title": "Step name", "status": "not_started", "match": 95, "duration": "2 wks", "stage": "prove", "modules": [{{"title": "End-to-end capstone project", "status": "not_started"}}, {{"title": "Deployment & CI/CD", "status": "not_started"}}, {{"title": "Interview preparation", "status": "not_started"}}], "resources": ["YouTube: Clever Programmer"] }}
   }},
   "skillData": [
     {{ "skill": "Skill Name", "current": 20, "target": 85 }},
@@ -224,7 +229,7 @@ CRITICAL RULES:
 7. duration should be realistic (e.g. "1 wk", "1.5 wks", "2 wks", "3 wks")
 8. reasoning must be personalized, practical, and specific — not generic
 9. All node statuses must be "not_started"
-10. syllabus MUST be an array of 3-5 SPECIFIC, REAL topics to study for that node. NEVER use generic placeholders like "Topic A", "Topic B", "Topic C", "Topic 1", "Topic 2", "Topic 3", or "Fundamentals of this module". Each syllabus item MUST be a concrete, descriptive topic name (e.g., "CSS Flexbox & Grid layouts", "RESTful API design patterns", "User persona creation")
+10. modules MUST be an array of 3-5 objects, each with "title" (SPECIFIC, REAL topic) and "status": "not_started". NEVER use generic placeholders like "Topic A", "Topic B", "Topic 1". Each module title MUST be a concrete, descriptive topic name (e.g., "CSS Flexbox & Grid layouts", "RESTful API design patterns")
 11. resources MUST be an array of 2-3 specific real-world resources (e.g., actual YouTube channels, free courses, books)
 12. Return ONLY the JSON. No extra text."""
 
@@ -258,26 +263,38 @@ CRITICAL RULES:
         # Build final track dict
         node_map = {k: v.model_dump() for k, v in validated.nodeMap.items()}
         
-        # Robust fallback for resources in case LLM forgets it
-        GENERIC_SYLLABUS = {"topic a", "topic b", "topic c", "topic 1", "topic 2", "topic 3",
-                           "fundamentals of this module", "key concepts and best practices",
-                           "hands-on application", "core concept a for this module",
-                           "core concept b for this module", "specific sub-skill 1",
-                           "specific sub-skill 2"}
+        # Robust fallback for resources/modules in case LLM forgets them
+        GENERIC_MODULE_TITLES = {"topic a", "topic b", "topic c", "topic 1", "topic 2", "topic 3",
+                                 "fundamentals of this module", "key concepts and best practices",
+                                 "hands-on application", "core concept a for this module",
+                                 "core concept b for this module", "specific sub-skill 1",
+                                 "specific sub-skill 2"}
         for node_key, node_val in node_map.items():
             if not node_val.get("resources"):
                 title = node_val.get("title", "this topic")
                 node_val["resources"] = [f"YouTube: {title} Tutorial", "Coursera / Udemy"]
-            # Fix generic/placeholder syllabus topics
-            if node_val.get("syllabus"):
-                has_generic = any(t.strip().lower() in GENERIC_SYLLABUS for t in node_val["syllabus"])
+            # Fix generic/placeholder module titles
+            modules = node_val.get("modules", [])
+            if modules:
+                has_generic = any(
+                    (m.get("title") or "").strip().lower() in GENERIC_MODULE_TITLES
+                    for m in modules
+                )
                 if has_generic:
-                    title = node_val.get("title", "Module")
-                    node_val["syllabus"] = [
-                        f"{title} — core concepts",
-                        f"{title} — practical exercises",
-                        f"{title} — real-world projects",
+                    node_title = node_val.get("title", "Module")
+                    node_val["modules"] = [
+                        {"title": f"{node_title} — core concepts", "status": "not_started"},
+                        {"title": f"{node_title} — practical exercises", "status": "not_started"},
+                        {"title": f"{node_title} — real-world projects", "status": "not_started"},
                     ]
+            elif not modules:
+                # LLM returned empty modules — generate sensible defaults
+                node_title = node_val.get("title", "Module")
+                node_val["modules"] = [
+                    {"title": f"{node_title} — fundamentals", "status": "not_started"},
+                    {"title": f"{node_title} — hands-on practice", "status": "not_started"},
+                    {"title": f"{node_title} — applied project", "status": "not_started"},
+                ]
 
         track = {
             "id": role_id,
