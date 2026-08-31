@@ -106,8 +106,8 @@ function LandingHeader() {
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         className="flex items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-          <Compass className="size-4" />
+        <span className="flex size-8 items-center justify-center rounded-lg shadow-sm overflow-hidden bg-primary text-primary-foreground">
+          <img src="/waypoint.svg" alt="WayPoint Logo" className="size-full object-cover" />
         </span>
         <span className="font-display text-lg font-semibold tracking-tight">WayPoint</span>
       </button>
@@ -465,8 +465,8 @@ export default function Landing() {
       <footer className="border-t border-border py-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
           <div className="flex items-center gap-2">
-            <span className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Compass className="size-3.5" />
+            <span className="flex size-6 items-center justify-center rounded-md overflow-hidden bg-primary text-primary-foreground">
+              <img src="/waypoint.svg" alt="WayPoint Logo" className="size-full object-cover" />
             </span>
             <span className="font-display text-sm font-semibold">WayPoint</span>
           </div>

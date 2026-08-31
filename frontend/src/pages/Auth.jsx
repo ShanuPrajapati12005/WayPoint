@@ -201,8 +201,8 @@ export default function Auth() {
             onClick={() => navigate("/")}
             className="relative z-10 flex w-fit items-center gap-2 outline-none"
           >
-            <span className="flex size-8 items-center justify-center rounded-lg bg-white/15 backdrop-blur-md shadow-sm">
-              <Compass className="size-4" />
+            <span className="flex size-8 items-center justify-center rounded-lg shadow-sm overflow-hidden bg-white/15 backdrop-blur-md">
+              <img src="/waypoint.svg" alt="WayPoint Logo" className="size-full object-cover" />
             </span>
             <span className="font-display text-lg font-semibold tracking-tight">WayPoint</span>
           </button>

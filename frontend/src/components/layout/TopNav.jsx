@@ -48,22 +48,7 @@ export default function TopNav() {
         className="flex shrink-0 items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg shadow-sm overflow-hidden">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-            <defs>
-              <linearGradient id="wp-bg" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="#6366f1"/>
-                <stop offset="1" stopColor="#863bff"/>
-              </linearGradient>
-            </defs>
-            <rect width="32" height="32" rx="8" fill="url(#wp-bg)"/>
-            <polyline points="5,10 10,22 16,13 22,22 27,10" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="5" cy="10" r="2.2" fill="white" opacity="0.75"/>
-            <circle cx="10" cy="22" r="2" fill="white" opacity="0.65"/>
-            <circle cx="16" cy="13" r="3" fill="white"/>
-            <circle cx="22" cy="22" r="2" fill="white" opacity="0.65"/>
-            <circle cx="27" cy="10" r="2.2" fill="white" opacity="0.75"/>
-            <circle cx="16" cy="13" r="1.2" fill="#6366f1"/>
-          </svg>
+          <img src="/waypoint.svg" alt="WayPoint" className="size-full object-cover" />
         </span>
         <span className="whitespace-nowrap font-display text-lg font-semibold tracking-tight text-foreground">
           WayPoint
