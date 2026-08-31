@@ -1,7 +1,14 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, Check, GitFork, ArrowRight, Layers, Zap } from "lucide-react";
+import {
+  Sparkles,
+  Check,
+  GitFork,
+  ArrowRight,
+  Layers,
+  Zap,
+} from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { MOCK_PATHS } from "@/data/tracks";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,7 +24,11 @@ function MiniMap({ highlight }) {
           <span
             className={cn(
               "size-2.5 rounded-full",
-              i <= 1 ? "bg-primary" : highlight ? "bg-warning/70" : "bg-success/60"
+              i <= 1
+                ? "bg-primary"
+                : highlight
+                  ? "bg-warning/70"
+                  : "bg-success/60",
             )}
           />
           {i < 4 && <span className="h-px w-4 bg-border" />}
@@ -31,7 +42,9 @@ export default function PathSelect() {
   const navigate = useNavigate();
   const { tracks, activeTrackId, setActiveTrackId } = useApp();
   const availablePaths = Object.values(tracks);
-  const [selected, setSelected] = React.useState(activeTrackId || (availablePaths[0]?.id));
+  const [selected, setSelected] = React.useState(
+    activeTrackId || availablePaths[0]?.id,
+  );
 
   const proceed = () => {
     if (selected) {
@@ -41,15 +54,19 @@ export default function PathSelect() {
   };
 
   const displayPaths = availablePaths.map((track) => {
-    const mockPath = MOCK_PATHS.find((m) => m.id === track.id || m.name === track.label);
+    const mockPath = MOCK_PATHS.find(
+      (m) => m.id === track.id || m.name === track.label,
+    );
     const nodes = Object.values(track.nodeMap || {});
     const shared = mockPath?.shared || nodes.slice(0, 3).map((n) => n.title);
     const unique = mockPath?.unique || nodes.slice(3, 6).map((n) => n.title);
-    
+
     return {
       id: track.id,
       name: track.label,
-      desc: mockPath?.desc || `A personalized learning path for ${track.label} to get you job-ready.`,
+      desc:
+        mockPath?.desc ||
+        `A personalized learning path for ${track.label} to get you job-ready.`,
       shared,
       unique,
     };
@@ -65,7 +82,8 @@ export default function PathSelect() {
           Choose the direction that fits you
         </h1>
         <p className="mx-auto mt-2 max-w-xl text-muted-foreground">
-          Select a track below to view and build its roadmap. You can manage multiple goals here.
+          Select a track below to view and build its roadmap. You can manage
+          multiple goals here.
         </p>
       </div>
 
@@ -90,7 +108,7 @@ export default function PathSelect() {
                     "h-full transition-all",
                     isSelected
                       ? "border-primary shadow-md ring-2 ring-primary/30"
-                      : "hover:-translate-y-1 hover:shadow-md"
+                      : "hover:-translate-y-1 hover:shadow-md",
                   )}
                 >
                   <CardContent className="flex h-full flex-col p-6">
@@ -98,23 +116,35 @@ export default function PathSelect() {
                       <span
                         className={cn(
                           "flex size-11 items-center justify-center rounded-xl",
-                          idx === 0 ? "bg-primary/10 text-primary" : "bg-warning/15 text-warning"
+                          idx === 0
+                            ? "bg-primary/10 text-primary"
+                            : "bg-warning/15 text-warning",
                         )}
                       >
-                        {idx === 0 ? <Layers className="size-5" /> : <GitFork className="size-5" />}
+                        {idx === 0 ? (
+                          <Layers className="size-5" />
+                        ) : (
+                          <GitFork className="size-5" />
+                        )}
                       </span>
                       <span
                         className={cn(
                           "flex size-6 items-center justify-center rounded-full border-2 transition-colors",
-                          isSelected ? "border-primary bg-primary text-primary-foreground" : "border-border"
+                          isSelected
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border",
                         )}
                       >
                         {isSelected && <Check className="size-3.5" />}
                       </span>
                     </div>
 
-                    <h3 className="font-display text-lg font-semibold">{path.name}</h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{path.desc}</p>
+                    <h3 className="font-display text-lg font-semibold">
+                      {path.name}
+                    </h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                      {path.desc}
+                    </p>
 
                     <div className="mt-4">
                       <MiniMap highlight={idx === 1} />
@@ -162,7 +192,11 @@ export default function PathSelect() {
 
       {/* Sticky Bottom Bar */}
       <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
-        <Button size="lg" onClick={proceed} className="pointer-events-auto rounded-full px-8 shadow-xl shadow-primary/25">
+        <Button
+          size="lg"
+          onClick={proceed}
+          className="pointer-events-auto rounded-full px-8 shadow-xl shadow-primary/25"
+        >
           View Roadmap <ArrowRight className="size-4 ml-1.5" />
         </Button>
       </div>
