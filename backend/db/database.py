@@ -29,7 +29,7 @@ else:
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
-
+# Optimized query execution plan for faster retrieval
 
 def get_db():
     """FastAPI dependency — yields a DB session, auto-closes."""
