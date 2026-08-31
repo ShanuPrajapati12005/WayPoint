@@ -777,7 +777,7 @@ CRITICAL RULES:
     except Exception as e:
         print(f"[GROQ] Onboarding chat failed: {e}")
         traceback.print_exc()
-        return "Sorry, I'm having a bit of trouble connecting right now. Could you try sending that again?"
+        return f"DEBUG_ERROR: {str(e)}"
 
 # ─── GENERAL CHAT ───
 def general_chat(messages: list) -> str:
