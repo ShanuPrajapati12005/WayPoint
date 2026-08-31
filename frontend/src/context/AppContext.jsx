@@ -68,10 +68,8 @@ export function AppProvider({ children }) {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('waypoint-theme');
       if (stored === 'light' || stored === 'dark') return stored;
-      // Respect OS preference on first visit
-      return window.matchMedia?.('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
+      // Default to light theme on first visit
+      return 'light';
     }
     return 'light';
   });

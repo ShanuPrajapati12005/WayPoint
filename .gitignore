@@ -18,7 +18,7 @@ __pycache__/
 *.sqlite3
 waypoint.db
 waypoint_backup.db
-scratch/
+backend/scratch/
 
 # Node
 node_modules/
@@ -29,3 +29,26 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# IDE & Agent internals (not part of project)
+.agent_docs/
+.claude/
+.vscode/
+
+# Internal docs / planning (not for judges)
+docs/
+
+# Backend scratch, test & one-off scripts (not production code)
+backend/scratch_*.py
+backend/test_*.py
+backend/update_*.py
+backend/script.py
+backend/*.db.backup
+backend/*.db
+backend/response.json
+backend/test_qs.json
+
+# Misc
+response.json
+test_qs.json

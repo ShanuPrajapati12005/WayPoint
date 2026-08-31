@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/WayPoint-Career%20Readiness%20AI-6366f1?style=for-the-badge&logo=compass&logoColor=white" alt="WayPoint Banner" />
+<img src="https://img.shields.io/badge/WayPoint-Career%20Readiness%20AI-6366f1?style=for-the-badge&logo=buffer&logoColor=white" alt="WayPoint Banner" />
 
-# 🧭 WayPoint
+# 🎯 WayPoint
 ### *Career Readiness & Adaptive AI Learning Path Recommender*
 
 > An intelligent career guidance platform that assesses your current skills, identifies gaps, and generates a fully personalized, adaptive roadmap to land your dream tech job — powered by Groq LLMs.
@@ -173,7 +173,6 @@ Once both servers are running:
 |---|---|
 | 🖥️ Frontend (React App) | http://localhost:5173 |
 | ⚙️ Backend (FastAPI) | http://localhost:8000 |
-| 📖 API Documentation | http://localhost:8000/docs |
 
 ---
 
