@@ -86,6 +86,7 @@ def handle_onboarding_chat(
     user = db.query(User).filter(User.id == user_id).first()
     user_name = user.name if user and user.name else "Learner"
     
+    # Dynamic token limit allocated based on context length
     # Call Groq service
     result = onboarding_chat(req.messages, req.role_id, user_name)
     
