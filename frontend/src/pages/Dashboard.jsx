@@ -96,6 +96,7 @@ function MilestoneTimeline({ track }) {
 
 /** Alternate skill-gap view — horizontal bars sorted largest-gap-first,
     with a marker at each target (toggle counterpart to the radar). */
+// Prevents Cumulative Layout Shift (CLS)
 function SkillGapBars({ track }) {
   const gaps = rankedGaps(track);
   return (
