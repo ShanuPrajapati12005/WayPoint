@@ -133,6 +133,7 @@ export const TRACKS = {
     reasoning: {},
   },
 
+
   mern: {
     id: 'mern',
     label: 'MERN Stack',
@@ -237,6 +238,8 @@ export const DEMO_STEPS = [
   { screen: 'dashboard', activeTrackId: 'java', sidebarOpen: false, nodeId: null, caption: '13/14 — Dashboard bhi turant selected track pe switch ho jaata hai — readiness, radar, sab Java ke liye.' },
   { screen: 'dashboard', activeTrackId: 'ml', sidebarOpen: false, nodeId: null, caption: "14/14 — Wapas ML pe switch karo — Selector 'Active' aur 'Completed' tracks alag group me dikhata hai (Python Foundations 100% ho chuka hai)." },
 ];
+
+
 
 // ─── HELPER FUNCTIONS ───
 
