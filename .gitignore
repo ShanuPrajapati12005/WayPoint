@@ -52,3 +52,10 @@ backend/test_qs.json
 # Misc
 response.json
 test_qs.json
+PROJECT_CONTEXT.md
+frontend_analysis.md
+project_audit_report.md
+task.md
+implementation_plan.md
+walkthrough.md
+pyrightconfig.json

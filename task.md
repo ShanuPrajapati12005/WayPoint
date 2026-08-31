@@ -1,6 +1,0 @@
-- [x] Update `backend/services/quiz_service.py` to return detailed results
-- [x] Update `waypoint-app/src/services/api.js` mock implementation for submitQuiz
-- [x] Fix state merging bug in `waypoint-app/src/context/AppContext.jsx` refreshTracks
-- [x] Add "Analyze your test" feature to `waypoint-app/src/pages/SkillCheck.jsx`
-- [x] Add "Analyze your test" feature to `waypoint-app/src/pages/FinalAssessment.jsx`
-- [x] Run the application to verify
