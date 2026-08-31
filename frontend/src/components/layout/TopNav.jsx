@@ -62,6 +62,7 @@ export default function TopNav() {
       </button>
 
       {/* Center: pill tabs — icon-only between md and lg so they always fit */}
+      {/* Accessibility wrapper */}
       <nav className="hidden shrink-0 items-center gap-1 rounded-full border border-border bg-card/60 p-1 shadow-sm md:flex">
         {TABS.map((tab) => {
           const Icon = tab.icon;
