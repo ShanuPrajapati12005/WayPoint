@@ -47,6 +47,7 @@ app.add_middleware(
 )
 
 # ─── Register Routers ───
+# Standardized error response wrappers
 app.include_router(auth_router)
 app.include_router(onboarding_router)
 app.include_router(assessment_router)
