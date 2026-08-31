@@ -177,80 +177,97 @@ export default function Auth() {
   };
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      {/* Brand panel — themed indigo→violet with a teal "evidence" glow */}
-      <div className="relative hidden overflow-hidden bg-gradient-to-br from-[#4f46e5] via-primary to-[#7c3aed] p-12 text-primary-foreground lg:flex lg:flex-col lg:justify-between">
-        <div className="bg-grid pointer-events-none absolute inset-0 opacity-20" />
-        <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-[#8b5cf6]/40 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-16 size-80 rounded-full bg-[#0ea5a4]/25 blur-3xl" />
+    <div className="relative flex min-h-screen items-center justify-center bg-background p-4 sm:p-8 overflow-hidden transition-colors duration-300">
+      {/* Subtle Background Gradient Overlay to avoid flat white/black */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-50/80 via-transparent to-transparent dark:from-indigo-950/30" />
+      
+      {/* Theme-adaptive grid (matches landing page, increased opacity + mix blend to shine) */}
+      <div className="bg-grid pointer-events-none absolute inset-0 opacity-70 dark:opacity-40 mix-blend-multiply dark:mix-blend-screen [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
+      
+      {/* Ambient glows */}
+      <div className="pointer-events-none absolute -left-1/4 -top-1/4 h-[800px] w-[800px] rounded-full bg-primary/20 blur-[120px] dark:bg-primary/10"></div>
+      <div className="pointer-events-none absolute -bottom-1/4 -right-1/4 h-[800px] w-[800px] rounded-full bg-blue-500/20 blur-[120px] dark:bg-blue-500/10"></div>
 
-        <button
-          onClick={() => navigate("/")}
-          className="relative flex items-center gap-2 outline-none"
-        >
-          <span className="flex size-8 items-center justify-center rounded-lg bg-white/15 backdrop-blur">
-            <Compass className="size-4" />
-          </span>
-          <span className="font-display text-lg font-semibold">WayPoint</span>
-        </button>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={isLogin ? "login" : "signup"}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -14 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="relative"
-          >
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur">
-              <Sparkles className="size-3.5" /> {panel.badge}
-            </span>
-            <h2 className="mt-5 font-display text-4xl font-bold leading-tight">
-              {panel.title}
-            </h2>
-            <p className="mt-4 max-w-md text-primary-foreground/85">{panel.subtitle}</p>
-            <ul className="mt-8 space-y-4">
-              {panel.points.map((p) => {
-                const Icon = p.icon;
-                return (
-                  <li key={p.text} className="flex items-center gap-3 text-primary-foreground/90">
-                    <span className="flex size-9 items-center justify-center rounded-lg bg-white/15">
-                      <Icon className="size-4" />
-                    </span>
-                    {p.text}
-                  </li>
-                );
-              })}
-            </ul>
-          </motion.div>
-        </AnimatePresence>
-
-        <p className="relative text-sm text-primary-foreground/70">
-          Career Readiness & Adaptive Learning Path Recommender
-        </p>
-      </div>
-
-      {/* Form panel */}
-      <div className="flex flex-col items-center justify-center px-4 py-10 sm:px-8">
-        <div className="w-full max-w-sm">
+      {/* Split Cards Container */}
+      <div className="z-10 w-full max-w-[1240px] grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-20 items-stretch min-h-[640px]">
+        
+        {/* Left Card (Brand) */}
+        <div className="relative hidden w-full flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-[#4f46e5] via-primary to-[#7c3aed] dark:from-[#3730a3] dark:via-primary/80 dark:to-[#5b21b6] p-12 text-primary-foreground shadow-[0_8px_30px_rgb(0,0,0,0.12)] lg:flex border border-white/10">
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#ffffff1a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff1a_1px,transparent_1px)] bg-[size:24px_24px]" />
+          <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-[#8b5cf6]/40 dark:bg-[#8b5cf6]/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-16 size-80 rounded-full bg-[#0ea5a4]/25 dark:bg-[#0ea5a4]/10 blur-3xl" />
+          
           <button
             onClick={() => navigate("/")}
-            className="mb-8 flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground lg:hidden"
+            className="relative z-10 flex w-fit items-center gap-2 outline-none"
           >
-            <ArrowLeft className="size-4" /> Back
+            <span className="flex size-8 items-center justify-center rounded-lg bg-white/15 backdrop-blur-md shadow-sm">
+              <Compass className="size-4" />
+            </span>
+            <span className="font-display text-lg font-semibold tracking-tight">WayPoint</span>
           </button>
 
-          <div className="mb-8">
-            <h1 className="font-display text-2xl font-bold tracking-tight">
-              {isLogin ? "Welcome back" : "Create your account"}
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {isLogin
-                ? "Log in to continue your roadmap."
-                : "Start with a quick skill check — it takes minutes."}
-            </p>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={isLogin ? "login" : "signup"}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -14 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="relative z-10"
+            >
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur-md">
+                <Sparkles className="size-3.5" /> {panel.badge}
+              </span>
+              <h2 className="mt-6 font-display text-4xl font-bold leading-tight">
+                {panel.title}
+              </h2>
+              <p className="mt-4 max-w-md text-primary-foreground/90">{panel.subtitle}</p>
+              <ul className="mt-10 space-y-5">
+                {panel.points.map((p) => {
+                  const Icon = p.icon;
+                  return (
+                    <li key={p.text} className="flex items-center gap-4 text-primary-foreground/95">
+                      <span className="flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/10 shadow-sm">
+                        <Icon className="size-4" />
+                      </span>
+                      {p.text}
+                    </li>
+                  );
+                })}
+              </ul>
+            </motion.div>
+          </AnimatePresence>
+
+          <p className="relative z-10 text-sm text-primary-foreground/70">
+            Career Readiness & Adaptive Learning Path Recommender
+          </p>
+        </div>
+
+        {/* Right Card (Form) */}
+        <div className="relative flex w-full flex-col justify-center overflow-hidden rounded-3xl bg-card p-8 sm:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-border dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
+          {/* Enhanced interactive gradient and glow for the form card */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-50/60 via-transparent to-transparent dark:from-indigo-950/20" />
+          <div className="pointer-events-none absolute -right-20 -top-20 h-[300px] w-[300px] rounded-full bg-primary/10 blur-[60px]" />
+          
+          <div className="relative z-10 mx-auto w-full max-w-sm">
+            <button
+              onClick={() => navigate("/")}
+              className="mb-8 flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground lg:hidden"
+            >
+              <ArrowLeft className="size-4" /> Back
+            </button>
+
+            <div className="mb-8">
+              <h1 className="font-display text-2xl font-bold tracking-tight">
+                {isLogin ? "Welcome back" : "Create your account"}
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {isLogin
+                  ? "Log in to continue your roadmap."
+                  : "Start with a quick skill check — it takes minutes."}
+              </p>
+            </div>
 
           <form onSubmit={submit} className="space-y-4" noValidate>
             <AnimatePresence initial={false}>
@@ -330,9 +347,9 @@ export default function Auth() {
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">{forgotStep === 2 ? "New Password" : "Password"}</Label>
                     {isLogin && forgotStep === 0 && (
-                      <button 
-                        type="button" 
-                        onClick={() => { setForgotStep(1); setError(""); setSuccessMsg(""); setTouched({}); setPassword(""); setOtp(""); }} 
+                      <button
+                        type="button"
+                        onClick={() => { setForgotStep(1); setError(""); setSuccessMsg(""); setTouched({}); setPassword(""); setOtp(""); }}
                         className="text-xs text-primary hover:underline"
                       >
                         Forgot?
@@ -371,7 +388,7 @@ export default function Auth() {
                 {error}
               </p>
             )}
-            
+
             {successMsg && (
               <p className="rounded-lg bg-green-500/10 px-3 py-2 text-sm text-green-600 dark:bg-green-500/20 dark:text-green-400">
                 {successMsg}
@@ -383,7 +400,7 @@ export default function Auth() {
                 {loading && <Loader2 className="size-4 animate-spin mr-2" />}
                 {forgotStep === 1 ? "Send OTP" : forgotStep === 2 ? "Update Password" : (isLogin ? "Log in" : "Create account")}
               </Button>
-              
+
               {forgotStep > 0 && (
                 <Button type="button" variant="outline" className="w-full" size="lg" onClick={resetForgot} disabled={loading}>
                   Back to Login
@@ -401,54 +418,6 @@ export default function Auth() {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="h-px flex-1 bg-border" />
-                  or continue with
-                  <span className="h-px flex-1 bg-border" />
-                </div>
-
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  disabled={loading}
-                  onClick={async () => {
-                    setError("");
-                    setLoading(true);
-                    try {
-                      // In a real implementation this would use Google OAuth popup/redirect
-                      // to get the user's email. For now we use the email from the form field.
-                      const googleEmail = email || "";
-                      if (!googleEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(googleEmail)) {
-                        setError("Please enter your email address first, then click Continue with Google.");
-                        setLoading(false);
-                        return;
-                      }
-                      const res = await api.googleAuth(googleEmail, name.trim() || googleEmail.split("@")[0]);
-                      if (res?.user) {
-                        setUserProfile((p) => ({
-                          ...p,
-                          id: res.user.id,
-                          name: res.user.name || googleEmail.split("@")[0],
-                          email: res.user.email || googleEmail,
-                          isOnboarded: res.user.isOnboarded,
-                        }));
-                      }
-                      // Route based on onboarding status
-                      if (res?.user?.isOnboarded) {
-                        navigate("/dashboard");
-                      } else {
-                        navigate("/onboarding");
-                      }
-                    } catch (err) {
-                      setError(err.message || "Google sign-in failed. Please try again.");
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
-                >
-                  <GoogleIcon className="size-4" />
-                  Continue with Google
-                </Button>
 
                 <p className="mt-6 text-center text-sm text-muted-foreground">
                   {isLogin ? "New to WayPoint?" : "Already have an account?"}{" "}
@@ -462,5 +431,6 @@ export default function Auth() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
