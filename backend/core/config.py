@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL = "llama-3.1-8b-instant"
+GROQ_MODEL = "llama3-8b-8192"
 JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", os.getenv("JWT_SECRET", "waypoint-dev-secret"))
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_HOURS = 168  # 7 days
