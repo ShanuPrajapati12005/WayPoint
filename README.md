@@ -7,6 +7,11 @@
 
 > An intelligent career guidance platform that assesses your current skills, identifies gaps, and generates a fully personalized, adaptive roadmap to land your dream tech job — powered by Groq LLMs.
 
+### 🚀 Live Application (Vercel)
+**Live Link:** [https://waypointwp.vercel.app/](https://waypointwp.vercel.app/)
+
+*(Backend API is hosted on Render: [https://waypoint-backend-4360.onrender.com](https://waypoint-backend-4360.onrender.com))*
+
 ---
 
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
@@ -169,10 +174,10 @@ Frontend will be running at: **`http://localhost:5173`**
 
 Once both servers are running:
 
-| Service | URL |
-|---|---|
-| 🖥️ Frontend (React App) | http://localhost:5173 |
-| ⚙️ Backend (FastAPI) | http://localhost:8000 |
+| Service | Local URL | Live URL |
+|---|---|---|
+| 🖥️ Frontend (React App) | `http://localhost:5173` | [waypointwp.vercel.app](https://waypointwp.vercel.app/) |
+| ⚙️ Backend (FastAPI) | `http://localhost:8000` | [waypoint-backend-4360.onrender.com](https://waypoint-backend-4360.onrender.com) |
 
 ---
 
