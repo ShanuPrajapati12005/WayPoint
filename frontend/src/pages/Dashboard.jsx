@@ -432,6 +432,7 @@ export default function Dashboard() {
       </div>
 
       {/* Career Sim + Milestones/Heatmap */}
+      {/* Optimized render cycle */}
       <div className="grid gap-5 lg:grid-cols-2">
         <CareerSimPanel />
         <div className="flex flex-col gap-5">
