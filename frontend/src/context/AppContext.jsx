@@ -230,9 +230,40 @@ export function AppProvider({ children }) {
     }
   }, []);
 
+  // ─── Reload after login: re-fetch all user data once token is set ───
+  const reloadAfterLogin = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const [tracksRes, profileRes] = await Promise.all([
+        api.getRoadmaps(),
+        api.getUserProfile().catch(() => null)
+      ]);
+      if (tracksRes && tracksRes.success) {
+        const newTracks = {};
+        for (const key of Object.keys(tracksRes.data)) {
+          const incoming = tracksRes.data[key];
+          newTracks[key] = { ...incoming, nodeMap: migrateNodeMap(incoming.nodeMap) };
+        }
+        setTracks(newTracks);
+        // Set active track to first real track, not hardcoded 'ml'
+        const keys = Object.keys(tracksRes.data);
+        if (keys.length > 0) {
+          setActiveTrackId(keys[0]);
+        }
+      }
+      if (profileRes && profileRes.success) {
+        setUserProfile(profileRes.profile);
+      }
+    } catch (err) {
+      console.error('Failed to reload data after login', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // ─── Active Track ───
   const [activeTrackId, setActiveTrackId] = useState(() => {
-    return localStorage.getItem('waypoint-active-track') || 'ml';
+    return localStorage.getItem('waypoint-active-track') || null;
   });
 
   useEffect(() => {
@@ -549,6 +580,7 @@ export function AppProvider({ children }) {
     activeTrack,
     generateAndLoadRoadmap,
     refreshTracks,
+    reloadAfterLogin,
     deleteTrack,
 
     // User

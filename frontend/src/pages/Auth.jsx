@@ -61,7 +61,7 @@ const PANELS = {
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { setUserProfile } = useApp();
+  const { setUserProfile, reloadAfterLogin } = useApp();
 
   const [isLogin, setIsLogin] = React.useState(searchParams.get("mode") === "login");
   const [forgotStep, setForgotStep] = React.useState(0);
@@ -154,8 +154,9 @@ export default function Auth() {
             isOnboarded: res.user.isOnboarded,
           }));
         }
-        // Route based on onboarding status
+        // Route based on onboarding status — reload tracks first so dashboard isn't empty
         if (res?.user?.isOnboarded) {
+          await reloadAfterLogin();
           navigate("/dashboard");
         } else {
           navigate("/onboarding");
