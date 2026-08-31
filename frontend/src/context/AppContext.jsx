@@ -16,6 +16,8 @@ import { toast as sonnerToast } from 'sonner';
 import { api, clearAuthToken } from '../services/api';
 import { FEEDBACK_MESSAGES } from '../data/tracks';
 
+// Isolated for component testing
+
 const AppContext = createContext(null);
 
 // ─── Migration helper ───
