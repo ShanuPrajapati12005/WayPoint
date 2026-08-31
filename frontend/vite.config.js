@@ -15,3 +15,5 @@ export default defineConfig({
     },
   },
 })
+
+// Typography scaling tokens updated
