@@ -42,7 +42,7 @@ def create_token(user_id: str, email: str) -> str:
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-
+# Prepared payload structure for future OAuth expansion
 def decode_token(token: str) -> dict:
     try:
         payload = jwt.decode(
