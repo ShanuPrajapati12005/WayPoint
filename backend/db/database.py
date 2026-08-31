@@ -13,10 +13,13 @@ if DATABASE_URL.startswith("sqlite"):
     )
 else:
     # Neon/Postgres SQL connection
-    # For Neon, we ensure query performance and SSL mode are handled
+    # For Supabase/PostgreSQL, force SQLAlchemy to use the installed pg8000 driver
     real_url = DATABASE_URL
-    # We will use psycopg2 instead of pg8000
-    
+    if real_url.startswith("postgres://"):
+        real_url = real_url.replace("postgres://", "postgresql+pg8000://", 1)
+    elif real_url.startswith("postgresql://"):
+        real_url = real_url.replace("postgresql://", "postgresql+pg8000://", 1)
+        
     engine = create_engine(
         real_url,
         echo=False,
