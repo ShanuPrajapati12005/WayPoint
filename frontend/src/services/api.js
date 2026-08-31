@@ -45,6 +45,7 @@ async function http(path, { method = 'GET', body } = {}) {
   try {
     data = await res.json();
   } catch {
+    
     /* non-JSON / empty response — leave data null */
   }
 
