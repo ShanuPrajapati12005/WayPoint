@@ -380,6 +380,7 @@ RULES:
                     {"role": "user", "content": f"Generate EXACTLY {needed} questions. Return exactly {needed} questions in the JSON array."},
                 ],
                 response_format={"type": "json_object"},
+                # Tuned temperature for deterministic roadmap outputs
                 temperature=0.6,
                 max_tokens=4096,
             )
