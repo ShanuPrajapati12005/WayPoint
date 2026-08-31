@@ -27,9 +27,6 @@ import AddSkill from './pages/AddSkill';
 import FinalAssessment from './pages/FinalAssessment';
 import Profile from './pages/Profile';
 
-// Pages that DON'T show the TopNav
-const NO_NAV_ROUTES = ['/', '/auth'];
-
 /**
  * Route guard. Only enforces auth against a real backend (VITE_USE_MOCK=false);
  * in mock/demo mode it's a pass-through so the frontend stays fully walkable.
@@ -41,7 +38,8 @@ function RequireAuth({ children }) {
 
 function AppContent() {
   const location = useLocation();
-  const showNav = !NO_NAV_ROUTES.includes(location.pathname);
+  const isLandingOrAuth = location.pathname === '/' || location.pathname.startsWith('/auth');
+  const showNav = !isLandingOrAuth;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -67,7 +65,7 @@ function AppContent() {
       {/* Global components */}
       <AISidebar />
       <CommandPalette />
-      <GlobalChatbot />
+      {showNav && <GlobalChatbot />}
       <AdaptationPopup />
       <Toaster />
     </div>
